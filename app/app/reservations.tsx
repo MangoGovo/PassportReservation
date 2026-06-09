@@ -1,34 +1,41 @@
-import { ChevronRight, QrCode, Search } from 'lucide-react-native';
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import { CalendarPlus, ChevronRight, ClipboardList, QrCode, RefreshCw } from 'lucide-react-native';
+import { Link, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 import { BottomTabs } from '@/src/components/bottom-tabs';
 import { Card } from '@/src/components/card';
 import { PrimaryButton } from '@/src/components/primary-button';
 import { ScreenContainer } from '@/src/components/screen-container';
 import { StatusChip } from '@/src/components/status-chip';
-import { TextField } from '@/src/components/text-field';
 import { TopBar } from '@/src/components/top-bar';
-import { queryReservations } from '@/src/services/api';
+import { listMyReservations } from '@/src/services/api';
 import { colors, spacing, typography } from '@/src/theme';
 import type { ReservationSummary } from '@/src/types';
 
 export default function ReservationsScreen() {
-  const [name, setName] = useState('');
-  const [idCard, setIdCard] = useState('');
-  const [mobile, setMobile] = useState('');
+  const router = useRouter();
   const [results, setResults] = useState<ReservationSummary[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const search = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      setResults(await queryReservations({ name, idCard, mobile }));
+      setResults(await listMyReservations());
+    } catch (requestError) {
+      setResults([]);
+      setError(requestError instanceof Error ? requestError.message : '预约记录加载失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <>
@@ -36,35 +43,58 @@ export default function ReservationsScreen() {
       <ScreenContainer bottom={<BottomTabs active="home" />}>
         <Card style={{ gap: spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <Search size={20} color={colors.primary} />
+            <ClipboardList size={20} color={colors.primary} />
             <Text selectable style={{ ...typography.bodyLgStrong, color: colors.primary }}>
-              预约查询
+              我的预约
             </Text>
           </View>
-          <TextField label="姓名" value={name} onChangeText={setName} placeholder="请输入真实姓名" />
-          <TextField label="身份证号" value={idCard} onChangeText={setIdCard} placeholder="请输入身份证号" />
-          <TextField label="手机号" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" placeholder="请输入手机号" />
+          <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant }}>
+            这里展示当前登录账号提交过的预约记录。
+          </Text>
           <PrimaryButton
-            label="查询记录"
-            onPress={search}
-            loading={loading}
-            leftIcon={<Search size={18} color={colors.onPrimary} />}
+            label="新增预约"
+            onPress={() => router.push('/reserve')}
+            leftIcon={<CalendarPlus size={18} color={colors.onPrimary} />}
           />
         </Card>
 
-        <View style={{ gap: spacing.md }}>
-          <Text selectable style={{ ...typography.labelBold, color: colors.outline }}>
-            查询结果
-          </Text>
-          {(results.length ? results : []).map((item) => (
-            <ReservationCard key={item.id} item={item} />
-          ))}
-          {!results.length ? (
-            <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant, textAlign: 'center' }}>
-              输入信息后点击查询记录
+        {loading ? <ReservationListSkeleton /> : null}
+
+        {!loading && error ? (
+          <Card style={{ gap: spacing.md, alignItems: 'center' }}>
+            <Text selectable style={{ ...typography.bodyLgStrong, color: colors.onSurface }}>
+              预约记录加载失败
             </Text>
-          ) : null}
-        </View>
+            <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant, textAlign: 'center' }}>
+              {error}
+            </Text>
+            <PrimaryButton label="重新加载" onPress={load} leftIcon={<RefreshCw size={18} color={colors.onPrimary} />} />
+          </Card>
+        ) : null}
+
+        {!loading && !error && results.length ? (
+          <View style={{ gap: spacing.md }}>
+            <Text selectable style={{ ...typography.labelBold, color: colors.outline }}>
+              预约记录
+            </Text>
+            {results.map((item) => (
+              <ReservationCard key={item.id} item={item} />
+            ))}
+          </View>
+        ) : null}
+
+        {!loading && !error && !results.length ? (
+          <Card style={{ gap: spacing.md, alignItems: 'center' }}>
+            <CalendarPlus size={34} color={colors.primary} />
+            <Text selectable style={{ ...typography.bodyLgStrong, color: colors.onSurface }}>
+              暂无预约记录
+            </Text>
+            <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant, textAlign: 'center' }}>
+              提交预约后，会直接在这里看到当前账号的预约状态。
+            </Text>
+            <PrimaryButton label="去预约" onPress={() => router.push('/reserve')} />
+          </Card>
+        ) : null}
       </ScreenContainer>
     </>
   );
@@ -93,7 +123,7 @@ function ReservationCard({ item }: { item: ReservationSummary }) {
       }}
     >
       <Text selectable style={{ ...typography.bodyMdStrong, color: canViewPass ? colors.primary : colors.onSurfaceVariant }}>
-        {canViewPass ? '查看通行码' : '查看详情'}
+        {canViewPass ? '查看通行码' : '查看状态'}
       </Text>
       {canViewPass ? <QrCode size={16} color={colors.primary} /> : <ChevronRight size={16} color={colors.onSurfaceVariant} />}
     </View>
@@ -132,9 +162,29 @@ function ReservationCard({ item }: { item: ReservationSummary }) {
           <Pressable>{action}</Pressable>
         </Link>
       ) : (
-        <Pressable onPress={() => Alert.alert('预约详情', `${item.typeLabel}：${item.statusLabel}`)}>{action}</Pressable>
+        <Pressable onPress={() => Alert.alert('预约状态', `${item.typeLabel}：${item.statusLabel}`)}>{action}</Pressable>
       )}
     </Card>
+  );
+}
+
+function ReservationListSkeleton() {
+  return (
+    <View style={{ gap: spacing.md }}>
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Card key={index} style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}>
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <SkeletonBlock style={{ width: '46%', height: 16 }} />
+              <SkeletonBlock style={{ width: '64%', height: 22 }} />
+            </View>
+            <SkeletonBlock style={{ width: 64, height: 24, borderRadius: 4 }} />
+          </View>
+          <SkeletonBlock style={{ height: 48 }} />
+          <SkeletonBlock style={{ height: 40 }} />
+        </Card>
+      ))}
+    </View>
   );
 }
 
@@ -149,4 +199,8 @@ function Meta({ label, value }: { label: string; value: string }) {
       </Text>
     </View>
   );
+}
+
+function SkeletonBlock({ style }: { style: ViewStyle }) {
+  return <View style={{ backgroundColor: colors.surfaceContainerHigh, borderRadius: 8, opacity: 0.9, ...style }} />;
 }

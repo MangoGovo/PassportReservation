@@ -139,6 +139,13 @@ public final class ReservationDtos {
     ) {
     }
 
+    @Schema(name = "CurrentPassResponse", description = "当前通行码响应")
+    public record CurrentPassResponse(
+            @Schema(description = "当前预约信息") ReservationDetail reservation,
+            @Schema(description = "当前预约对应的个人身份通行码") PassCodeResponse passCode
+    ) {
+    }
+
     @Schema(name = "ApprovalRequest", description = "公务预约审核请求")
     public record ApprovalRequest(
             @Schema(description = "审核结果：APPROVED/REJECTED", example = "APPROVED") @NotBlank String result,

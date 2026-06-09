@@ -130,7 +130,7 @@ export default function RegisterScreen() {
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: -10 }}>
             <Info size={14} color={colors.onSurfaceVariant} />
             <Text selectable style={{ ...typography.labelBold, color: colors.onSurfaceVariant }}>
-              密码需包含字母及数字，长度8-16位
+              密码需包含数字、大小写字母和特殊字符，长度至少8位
             </Text>
           </View>
           <TextField

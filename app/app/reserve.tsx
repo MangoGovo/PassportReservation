@@ -9,7 +9,8 @@ import { PrimaryButton } from '@/src/components/primary-button';
 import { SelectField } from '@/src/components/select-field';
 import { TextField } from '@/src/components/text-field';
 import { TopBar } from '@/src/components/top-bar';
-import { campusOptions, transportOptions } from '@/src/data/options';
+import { VisitTimePicker } from '@/src/components/visit-time-picker';
+import { campusOptions, departmentOptions, transportOptions } from '@/src/data/options';
 import { createReservation } from '@/src/services/api';
 import { colors, commonStyles, spacing, typography } from '@/src/theme';
 import type { ReservationType } from '@/src/types';
@@ -70,7 +71,7 @@ export default function ReserveScreen() {
         companions,
       });
       if (result.status === 'AUTO_APPROVED') {
-        router.replace(`/pass/${result.id}`);
+        router.replace('/pass');
       } else {
         Alert.alert('预约已提交', '公务预约已提交，请等待访问部门审核。');
         router.replace('/reservations');
@@ -109,12 +110,11 @@ export default function ReserveScreen() {
 
         <Card style={{ gap: spacing.md }}>
           <SelectField label="预约校区" required value={campus} onChange={setCampus} options={campusOptions} />
-          <TextField
+          <VisitTimePicker
             label="预约进校时间"
             required
             value={visitTime}
-            onChangeText={setVisitTime}
-            placeholder="年 / 月 / 日 --:--"
+            onChange={setVisitTime}
           />
         </Card>
 
@@ -134,12 +134,12 @@ export default function ReserveScreen() {
 
         {reservationType === 'official' ? (
           <Card style={{ gap: spacing.md }}>
-            <TextField
+            <SelectField
               label="公务访问部门"
               required
               value={department}
-              onChangeText={setDepartment}
-              placeholder="请输入访问部门"
+              onChange={setDepartment}
+              options={departmentOptions}
             />
             <TextField label="接待人" required value={host} onChangeText={setHost} placeholder="请输入校内接待人姓名" />
             <TextField

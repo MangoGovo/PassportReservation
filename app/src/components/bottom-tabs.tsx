@@ -1,21 +1,24 @@
-import { CalendarCheck, QrCode, UserRound } from 'lucide-react-native';
-import { Link } from 'expo-router';
+import { CalendarCheck, QrCode } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing, typography } from '@/src/theme';
 
-type TabKey = 'home' | 'pass' | 'profile';
+type TabKey = 'home' | 'pass';
 
 export function BottomTabs({
   active,
+  onHomePress,
   onPassPress,
 }: {
   active: TabKey;
+  onHomePress?: () => void;
   onPassPress?: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <View
@@ -31,23 +34,27 @@ export function BottomTabs({
         backgroundColor: colors.surface,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-around',
-        paddingHorizontal: spacing.sm,
+        justifyContent: 'center',
+        paddingHorizontal: spacing.lg,
+        gap: spacing.sm,
       }}
     >
-      <Link href="/" asChild>
-        <TabButton active={active === 'home'} label="预约管理" icon={<CalendarCheck />} />
-      </Link>
+      <TabButton
+        active={active === 'home'}
+        label="访问预约"
+        icon={<CalendarCheck />}
+        onPress={active === 'home' ? undefined : onHomePress ?? (() => router.replace('/'))}
+      />
       {onPassPress ? (
         <TabButton active={active === 'pass'} label="我的通行" icon={<QrCode />} onPress={onPassPress} />
       ) : (
-        <Link href="/pass/demo" asChild>
-          <TabButton active={active === 'pass'} label="我的通行" icon={<QrCode />} />
-        </Link>
+        <TabButton
+          active={active === 'pass'}
+          label="我的通行"
+          icon={<QrCode />}
+          onPress={active === 'pass' ? undefined : () => router.replace('/pass')}
+        />
       )}
-      <Link href="/" asChild>
-        <TabButton active={active === 'profile'} label="个人中心" icon={<UserRound />} />
-      </Link>
     </View>
   );
 }
@@ -67,8 +74,9 @@ function TabButton({
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        minWidth: 86,
-        height: 48,
+        flex: 1,
+        maxWidth: 180,
+        height: 50,
         borderRadius: 12,
         paddingHorizontal: spacing.sm,
         alignItems: 'center',

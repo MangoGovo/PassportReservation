@@ -17,12 +17,16 @@ export type ReservationSummary = {
 export type PassDetail = {
   id: string;
   passStatus: PassStatus;
+  statusLabel: string;
+  typeLabel: string;
+  reservationNo: string;
   avatarText: string;
   nameMasked: string;
   idCardMasked: string;
   campusGate: string;
   visitDate: string;
   validTime: string;
+  qrBase64?: string;
 };
 
 export type CreateReservationInput = {

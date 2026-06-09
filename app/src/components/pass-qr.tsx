@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 
 const size = 21;
 const cells = Array.from({ length: size * size }, (_, index) => {
@@ -7,7 +7,7 @@ const cells = Array.from({ length: size * size }, (_, index) => {
   return { row, col, filled: isFilled(row, col) };
 });
 
-export function PassQr({ color, disabled }: { color: string; disabled?: boolean }) {
+export function PassQr({ color, disabled, imageUri }: { color: string; disabled?: boolean; imageUri?: string }) {
   const moduleColor = disabled ? '#718096' : color;
 
   return (
@@ -22,26 +22,30 @@ export function PassQr({ color, disabled }: { color: string; disabled?: boolean 
         boxShadow: `0px 4px 16px ${disabled ? 'rgba(113,128,150,0.22)' : 'rgba(128,90,213,0.25)'}`,
       }}
     >
-      <View
-        style={{
-          width: 168,
-          height: 168,
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          opacity: disabled ? 0.55 : 1,
-        }}
-      >
-        {cells.map((cell) => (
-          <View
-            key={`${cell.row}-${cell.col}`}
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: cell.filled ? moduleColor : '#ffffff',
-            }}
-          />
-        ))}
-      </View>
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={{ width: 168, height: 168, opacity: disabled ? 0.55 : 1 }} resizeMode="contain" />
+      ) : (
+        <View
+          style={{
+            width: 168,
+            height: 168,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            opacity: disabled ? 0.55 : 1,
+          }}
+        >
+          {cells.map((cell) => (
+            <View
+              key={`${cell.row}-${cell.col}`}
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: cell.filled ? moduleColor : '#ffffff',
+              }}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }

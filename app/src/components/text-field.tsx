@@ -43,6 +43,7 @@ export function TextField({
       </View>
       <View
         style={{
+          height: multiline ? undefined : 48,
           minHeight: multiline ? 96 : 48,
           borderWidth: 1,
           borderColor: colors.outlineVariant,
@@ -56,7 +57,7 @@ export function TextField({
         {prefix ? (
           <View
             style={{
-              height: '100%',
+              height: multiline ? undefined : 48,
               paddingHorizontal: spacing.md,
               alignItems: 'center',
               justifyContent: 'center',
@@ -71,7 +72,14 @@ export function TextField({
           </View>
         ) : null}
         {LeftIcon ? (
-          <View style={{ paddingLeft: spacing.md, paddingTop: multiline ? spacing.md : 0 }}>
+          <View
+            style={{
+              height: multiline ? undefined : 48,
+              paddingLeft: spacing.md,
+              paddingTop: multiline ? spacing.md : 0,
+              justifyContent: multiline ? 'flex-start' : 'center',
+            }}
+          >
             <LeftIcon size={18} color={colors.outline} />
           </View>
         ) : null}
@@ -86,6 +94,7 @@ export function TextField({
           textAlignVertical={multiline ? 'top' : 'center'}
           style={{
             flex: 1,
+            height: multiline ? undefined : 48,
             minHeight: multiline ? 96 : 48,
             paddingHorizontal: spacing.md,
             paddingVertical: multiline ? spacing.md : 0,

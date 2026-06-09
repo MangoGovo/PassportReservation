@@ -6,6 +6,7 @@ import com.campus.passportreservation.common.BusinessException;
 import com.campus.passportreservation.common.PageResponse;
 import com.campus.passportreservation.dto.ReservationDtos.CompanionRequest;
 import com.campus.passportreservation.dto.ReservationDtos.CompanionResponse;
+import com.campus.passportreservation.dto.ReservationDtos.CurrentPassResponse;
 import com.campus.passportreservation.dto.ReservationDtos.PassCodeResponse;
 import com.campus.passportreservation.dto.ReservationDtos.ReservationCreateRequest;
 import com.campus.passportreservation.dto.ReservationDtos.ReservationDetail;
@@ -127,6 +128,17 @@ public class ReservationService {
         return PageResponse.of(result, result.getRecords().stream().map(this::toListItem).toList());
     }
 
+    public PageResponse<ReservationListItem> listMine(Long pageValue, Long sizeValue) {
+        Long mobileUserId = LoginContext.requireMobileId();
+        long page = pageValue == null || pageValue < 1 ? 1 : pageValue;
+        long size = sizeValue == null || sizeValue < 1 ? 20 : Math.min(sizeValue, 100);
+        Page<Reservation> pageRequest = Page.of(page, size);
+        Page<Reservation> result = reservationMapper.selectPage(pageRequest, new LambdaQueryWrapper<Reservation>()
+                .eq(Reservation::getMobileUserId, mobileUserId)
+                .orderByDesc(Reservation::getApplyTime));
+        return PageResponse.of(result, result.getRecords().stream().map(this::toListItem).toList());
+    }
+
     public ReservationDetail detailForMobile(Long id) {
         Reservation reservation = ownedReservation(id);
         auditLogService.record("RESERVATION_DETAIL", "reservation", id, "SUCCESS", null);
@@ -135,12 +147,29 @@ public class ReservationService {
 
     public PassCodeResponse passCode(Long id) {
         Reservation reservation = ownedReservation(id);
+        PassCodeResponse response = toPassCodeResponse(reservation);
+        auditLogService.record("PASS_CODE_VIEW", "reservation", id, "SUCCESS", Map.of("passStatus", response.passStatus()));
+        return response;
+    }
+
+    public CurrentPassResponse currentPassCode() {
+        Reservation reservation = currentReservation(LoginContext.requireMobileId());
+        if (reservation == null) {
+            return null;
+        }
+        PassCodeResponse passCode = toPassCodeResponse(reservation);
+        auditLogService.record("CURRENT_PASS_CODE_VIEW", "reservation", reservation.getId(), "SUCCESS",
+                Map.of("passStatus", passCode.passStatus()));
+        return new CurrentPassResponse(toDetail(reservation), passCode);
+    }
+
+    private PassCodeResponse toPassCodeResponse(Reservation reservation) {
         PassStatus status = passStatus(reservation);
         String statusText = statusText(status, reservation);
         String idCard = cryptoService.decrypt(reservation.getIdCardCipher());
-        String payload = payload(reservation, status, idCard);
-        String qr = status == PassStatus.VALID ? qrBase64(payload) : null;
-        auditLogService.record("PASS_CODE_VIEW", "reservation", id, "SUCCESS", Map.of("passStatus", status.name()));
+        String phone = cryptoService.decrypt(reservation.getPhoneCipher());
+        String payload = payload(reservation, idCard, phone);
+        String qr = qrBase64(payload);
         return new PassCodeResponse(reservation.getId(), reservation.getReservationNo(), status.name(), statusText,
                 payload, qr, reservation.getValidStartTime(), reservation.getValidEndTime());
     }
@@ -233,6 +262,23 @@ public class ReservationService {
         return reservation;
     }
 
+    private Reservation currentReservation(Long mobileUserId) {
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        List<Reservation> current = reservationMapper.selectPage(Page.of(1, 1), new LambdaQueryWrapper<Reservation>()
+                .eq(Reservation::getMobileUserId, mobileUserId)
+                .ge(Reservation::getValidEndTime, todayStart)
+                .orderByAsc(Reservation::getVisitTime)
+                .orderByDesc(Reservation::getApplyTime)).getRecords();
+        if (!current.isEmpty()) {
+            return current.get(0);
+        }
+        List<Reservation> historical = reservationMapper.selectPage(Page.of(1, 1), new LambdaQueryWrapper<Reservation>()
+                .eq(Reservation::getMobileUserId, mobileUserId)
+                .orderByDesc(Reservation::getVisitTime)
+                .orderByDesc(Reservation::getApplyTime)).getRecords();
+        return historical.isEmpty() ? null : historical.get(0);
+    }
+
     private void validateCreate(ReservationCreateRequest request) {
         if (!ReservationType.PUBLIC.name().equals(request.reservationType()) && !ReservationType.OFFICIAL.name().equals(request.reservationType())) {
             throw new BusinessException("预约类型错误");
@@ -309,16 +355,14 @@ public class ReservationService {
                 MaskingUtils.maskPhone(cryptoService.decrypt(companion.getPhoneCipher())));
     }
 
-    private String payload(Reservation reservation, PassStatus status, String idCard) {
+    private String payload(Reservation reservation, String idCard, String phone) {
         try {
             Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("reservationNo", reservation.getReservationNo());
+            payload.put("identityType", "MOBILE_USER");
+            payload.put("identityId", "MOBILE:" + reservation.getMobileUserId());
             payload.put("name", MaskingUtils.maskName(reservation.getVisitorName()));
             payload.put("idCard", MaskingUtils.maskIdCard(idCard));
-            payload.put("campus", dictionaryService.campusName(reservation.getCampusId()));
-            payload.put("visitTime", reservation.getVisitTime().toString());
-            payload.put("generatedAt", LocalDateTime.now().toString());
-            payload.put("status", status.name());
+            payload.put("phone", MaskingUtils.maskPhone(phone));
             return objectMapper.writeValueAsString(payload);
         } catch (Exception exception) {
             throw new BusinessException(500, "通行码载荷生成失败");
