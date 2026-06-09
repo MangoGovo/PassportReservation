@@ -33,4 +33,4 @@ build/
 .vscode/
 .idea
 .DS_Store
-.gitignore
+.env
