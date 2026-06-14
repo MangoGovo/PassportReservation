@@ -8,6 +8,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { BottomTabs } from '@/src/components/bottom-tabs';
 import { Card } from '@/src/components/card';
@@ -40,12 +41,27 @@ export default function HomeScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const [target, setTarget] = useState<ProtectedTarget | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'pass'>('home');
+  const [contentWidth, setContentWidth] = useState(0);
+  const [passMounted, setPassMounted] = useState(tab === 'pass');
+  const tabProgress = useSharedValue(activeTab === 'pass' ? 1 : 0);
+
+  const slideStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateX: -tabProgress.value * contentWidth }],
+    }),
+    [contentWidth],
+  );
 
   useEffect(() => {
     if (tab === 'pass') {
+      setPassMounted(true);
       setActiveTab('pass');
     }
   }, [tab]);
+
+  useEffect(() => {
+    tabProgress.value = withTiming(activeTab === 'pass' ? 1 : 0, { duration: 260 });
+  }, [activeTab, tabProgress]);
 
   const openAuthGate = async (nextTarget: ProtectedTarget, options?: { replace?: boolean }) => {
     if (await hasCachedLogin()) {
@@ -63,9 +79,19 @@ export default function HomeScreen() {
     setTarget(null);
   };
 
+  const switchMainTab = (nextTab: 'home' | 'pass') => {
+    if (nextTab === activeTab) {
+      return;
+    }
+    if (nextTab === 'pass') {
+      setPassMounted(true);
+    }
+    setActiveTab(nextTab);
+  };
+
   const openPassTab = async () => {
     if (await hasCachedLogin()) {
-      setActiveTab('pass');
+      switchMainTab('pass');
       return;
     }
     setTarget('/pass');
@@ -84,13 +110,26 @@ export default function HomeScreen() {
         bottom={
           <BottomTabs
             active={activeTab}
-            onHomePress={() => setActiveTab('home')}
+            onHomePress={() => switchMainTab('home')}
             onPassPress={openPassTab}
           />
         }
       >
-        {activeTab === 'home' ? (
-          <>
+        <View
+          onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
+          style={{ overflow: 'hidden' }}
+        >
+          <Animated.View
+            style={[
+              {
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                width: contentWidth > 0 ? contentWidth * 2 : '200%',
+              },
+              slideStyle,
+            ]}
+          >
+            <View style={{ width: contentWidth || '50%', gap: spacing.xl }}>
             <Card style={{ padding: 24, alignItems: 'center', gap: spacing.sm }}>
               <View
                 style={{
@@ -202,10 +241,12 @@ export default function HomeScreen() {
             </Card>
 
             <Footer />
-          </>
-        ) : (
-          <CurrentPassContent />
-        )}
+            </View>
+            <View style={{ width: contentWidth || '50%', gap: spacing.xl }}>
+              {passMounted ? <CurrentPassContent /> : null}
+            </View>
+          </Animated.View>
+        </View>
       </ScreenContainer>
 
       <Modal transparent visible={target !== null} animationType="fade" onRequestClose={closeAuthGate}>

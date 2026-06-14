@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>审计日志管理 - 校园通行管理系统</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .monospace {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for high-density data */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c4c6cf;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #74777f;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffdeaa",
+                      "on-primary": "#ffffff",
+                      "inverse-on-surface": "#f1f0f4",
+                      "tertiary": "#2d1d00",
+                      "on-primary-fixed-variant": "#2d476f",
+                      "outline": "#74777f",
+                      "tertiary-fixed-dim": "#f8bc4b",
+                      "outline-variant": "#c4c6cf",
+                      "secondary-container": "#9ff5c1",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#5f4100",
+                      "on-secondary-fixed": "#002111",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed": "#001b3c",
+                      "primary": "#002045",
+                      "secondary-fixed": "#9ff5c1",
+                      "inverse-surface": "#2f3033",
+                      "secondary": "#0a6c44",
+                      "on-surface-variant": "#43474e",
+                      "surface": "#faf9fd",
+                      "tertiary-container": "#493100",
+                      "surface-container-highest": "#e3e2e6",
+                      "background": "#faf9fd",
+                      "on-tertiary-container": "#cb9524",
+                      "surface-container": "#efedf1",
+                      "surface-variant": "#e3e2e6",
+                      "primary-container": "#1a365d",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed-dim": "#adc7f7",
+                      "on-secondary-fixed-variant": "#005231",
+                      "surface-container-low": "#f4f3f7",
+                      "on-background": "#1a1c1e",
+                      "inverse-primary": "#adc7f7",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#faf9fd",
+                      "secondary-fixed-dim": "#83d8a6",
+                      "surface-dim": "#dad9dd",
+                      "surface-tint": "#455f88",
+                      "on-secondary-container": "#167249",
+                      "on-tertiary-fixed": "#271900",
+                      "on-surface": "#1a1c1e",
+                      "on-error-container": "#93000a",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#86a0cd",
+                      "primary-fixed": "#d6e3ff",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#e9e7eb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-margin": "1.5rem",
+                      "container-padding": "1rem",
+                      "component-height-md": "3rem",
+                      "stack-gap": "0.75rem",
+                      "inline-padding": "1rem"
+              },
+              "fontFamily": {
+                      "body-md": ["Work Sans"],
+                      "body-lg": ["Work Sans"],
+                      "code-display": ["Work Sans"],
+                      "label-bold": ["Work Sans"],
+                      "headline-md": ["Work Sans"],
+                      "headline-lg": ["Work Sans"]
+              },
+              "fontSize": {
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "code-display": ["48px", {"lineHeight": "56px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex overflow-hidden">
+<!-- Sidebar Navigation (Desktop) -->
+<aside class="hidden md:flex flex-col w-64 bg-surface-container border-r border-outline-variant z-50">
+<div class="p-6">
+<h1 class="text-headline-md font-headline-md text-primary tracking-tight">校园通行管理</h1>
+<p class="text-label-bold font-label-bold text-on-surface-variant mt-1 opacity-70">审计管理后台</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-label-bold text-label-bold">概览面板</span>
+</a>
+<a class="flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+<span class="font-label-bold text-label-bold">用户授权</span>
+</a>
+<a class="flex items-center px-4 py-3 bg-primary-container text-on-primary-container rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">rule</span>
+<span class="font-label-bold text-label-bold">审计日志</span>
+</a>
+<a class="flex items-center px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-label-bold text-label-bold">系统设置</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 p-2">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div>
+<p class="text-label-bold font-label-bold">Audit_Admin</p>
+<p class="text-[10px] text-on-surface-variant">高级管理员</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline-variant h-16 flex items-center px-6 justify-between z-40">
+<div class="flex items-center gap-4">
+<button class="md:hidden p-2 hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-headline-md font-headline-md text-on-surface">审计日志</h2>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-surface-container-high rounded-full relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="h-6 w-[1px] bg-outline-variant mx-2"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="text-label-bold font-label-bold">导出报表</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Filter Bar Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Date Range -->
+<div class="flex flex-col gap-1">
+<label class="text-label-bold font-label-bold text-on-surface-variant ml-1">起止日期</label>
+<div class="flex items-center border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:border-2 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2">calendar_today</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 text-body-md font-body-md" placeholder="2026-06-01 - 2026-06-30" type="text"/>
+</div>
+</div>
+<!-- Operation Type -->
+<div class="flex flex-col gap-1">
+<label class="text-label-bold font-label-bold text-on-surface-variant ml-1">操作类型</label>
+<select class="border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-0 text-body-md font-body-md bg-transparent">
+<option>全部操作</option>
+<option>登录 (Login)</option>
+<option>审批 (Approval)</option>
+<option>删除 (Delete)</option>
+</select>
+</div>
+<!-- Admin Name -->
+<div class="flex flex-col gap-1">
+<label class="text-label-bold font-label-bold text-on-surface-variant ml-1">操作人员</label>
+<div class="flex items-center border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] mr-2">person_search</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 text-body-md font-body-md" placeholder="输入管理员ID" type="text"/>
+</div>
+</div>
+<!-- Search Button -->
+<div class="flex items-end">
+<button class="w-full h-[40px] bg-primary text-on-primary font-headline-md text-body-md rounded-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">search</span>
+                            执行筛选
+                        </button>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">日志 ID</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">操作员</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">操作内容</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">目标对象</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">IP 地址</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">发生时间</th>
+<th class="px-4 py-4 text-label-bold font-label-bold text-on-surface-variant">状态</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Example Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-4 monospace text-primary font-bold">L9982</td>
+<td class="px-4 py-4 font-label-bold">admin_01</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-secondary-container/20 text-on-secondary-container rounded text-[11px] font-bold">官方预约审批</span>
+</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">R20260608001</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">192.168.1.1</td>
+<td class="px-4 py-4 text-on-surface-variant whitespace-nowrap">2026-06-08 10:30:15</td>
+<td class="px-4 py-4">
+<span class="flex items-center text-secondary gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        成功
+                                    </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-4 monospace text-primary font-bold">L9981</td>
+<td class="px-4 py-4 font-label-bold">super_user</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-primary-container/10 text-primary rounded text-[11px] font-bold">系统参数修改</span>
+</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">SYS_CONF_09</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">10.0.42.158</td>
+<td class="px-4 py-4 text-on-surface-variant whitespace-nowrap">2026-06-08 09:15:22</td>
+<td class="px-4 py-4">
+<span class="flex items-center text-secondary gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        成功
+                                    </span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-4 monospace text-primary font-bold">L9980</td>
+<td class="px-4 py-4 font-label-bold">admin_02</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-error-container/20 text-error rounded text-[11px] font-bold">删除黑名单记录</span>
+</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">BL_ID_8821</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">172.16.5.21</td>
+<td class="px-4 py-4 text-on-surface-variant whitespace-nowrap">2026-06-08 08:45:01</td>
+<td class="px-4 py-4">
+<span class="flex items-center text-error gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">error</span>
+                                        警告
+                                    </span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-4 monospace text-primary font-bold">L9979</td>
+<td class="px-4 py-4 font-label-bold">admin_01</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-secondary-container/20 text-on-secondary-container rounded text-[11px] font-bold">用户登录</span>
+</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">AUTH_SVC</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">192.168.1.1</td>
+<td class="px-4 py-4 text-on-surface-variant whitespace-nowrap">2026-06-08 08:30:10</td>
+<td class="px-4 py-4">
+<span class="flex items-center text-secondary gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        成功
+                                    </span>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-4 monospace text-primary font-bold">L9978</td>
+<td class="px-4 py-4 font-label-bold">sys_internal</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 bg-tertiary-container/20 text-on-tertiary-container rounded text-[11px] font-bold">定时任务执行</span>
+</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">CRON_CLEANUP</td>
+<td class="px-4 py-4 monospace text-on-surface-variant">127.0.0.1</td>
+<td class="px-4 py-4 text-on-surface-variant whitespace-nowrap">2026-06-08 04:00:00</td>
+<td class="px-4 py-4">
+<span class="flex items-center text-secondary gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        成功
+                                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+<span class="text-label-bold text-on-surface-variant">显示 1 到 5 共 12,482 条记录</span>
+<div class="flex items-center gap-1">
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg text-label-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-low rounded-lg text-label-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-low rounded-lg text-label-bold">3</button>
+<span class="mx-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-low rounded-lg text-label-bold">2497</button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Stats/Metrics (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-primary-container/10 border border-primary-container/30 rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-label-bold font-label-bold text-primary">今日活跃管理员</span>
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<div class="mt-4">
+<p class="text-headline-lg font-headline-lg text-primary">24</p>
+<p class="text-[10px] text-on-primary-container/70">+12% 较昨日平均值</p>
+</div>
+</div>
+<div class="bg-secondary-container/10 border border-secondary-container/30 rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-label-bold font-label-bold text-secondary">系统拦截频率</span>
+<span class="material-symbols-outlined text-secondary">security</span>
+</div>
+<div class="mt-4">
+<p class="text-headline-lg font-headline-lg text-secondary">0.05 <span class="text-body-md">次/秒</span></p>
+<p class="text-[10px] text-on-secondary-container/70">运行状态: 稳定</p>
+</div>
+</div>
+<div class="bg-tertiary-container/10 border border-tertiary-container/30 rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-label-bold font-label-bold text-on-tertiary-container">高危异常告警</span>
+<span class="material-symbols-outlined text-on-tertiary-container">warning</span>
+</div>
+<div class="mt-4">
+<p class="text-headline-lg font-headline-lg text-on-tertiary-container">2</p>
+<p class="text-[10px] text-on-tertiary-container/70">待审计核实</p>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="flex flex-col items-center gap-2 py-8 mt-4 text-on-surface-variant">
+<div class="flex gap-4">
+<a class="text-body-md font-body-md hover:text-primary transition-colors" href="#">隐私政策</a>
+<a class="text-body-md font-body-md hover:text-primary transition-colors" href="#">使用指南</a>
+</div>
+<p class="text-body-md font-body-md">© 2024 校园通行管理系统 | 某某大学信息化中心</p>
+</footer>
+</section>
+</main>
+<!-- Floating Action Button (Contextual) -->
+<button class="fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">add</span>
+<span class="absolute right-16 bg-inverse-surface text-inverse-on-surface px-3 py-1 rounded-lg text-label-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            手动添加日志项
+        </span>
+</button>
+<script>
+        // Simple micro-interaction for rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                // Flash interaction
+                row.classList.add('bg-primary-container/10');
+                setTimeout(() => {
+                    row.classList.remove('bg-primary-container/10');
+                }, 400);
+                console.log('Viewing details for log: ' + row.cells[0].innerText);
+            });
+        });
+
+        // Search logic placeholder
+        const searchBtn = document.querySelector('button.bg-primary');
+        searchBtn.addEventListener('click', () => {
+            searchBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> 正在检索...';
+            setTimeout(() => {
+                searchBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">search</span> 执行筛选';
+            }, 1200);
+        });
+    </script>
+</body></html>

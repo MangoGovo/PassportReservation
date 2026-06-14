@@ -19,6 +19,22 @@ public final class DictionaryDtos {
     ) {
     }
 
+    @Schema(name = "DepartmentQuery", description = "后台部门查询条件")
+    public record DepartmentQuery(
+            @Schema(description = "页码，从 1 开始", example = "1") Long page,
+            @Schema(description = "每页条数", example = "20") Long size,
+            @Schema(description = "部门名称或编号关键字", example = "计算机") String keyword,
+            @Schema(description = "部门类型", example = "学院") String deptType,
+            @Schema(description = "状态：ENABLED/DISABLED", example = "ENABLED") String status
+    ) {
+    }
+
+    @Schema(name = "DepartmentStatusRequest", description = "部门状态修改请求")
+    public record DepartmentStatusRequest(
+            @Schema(description = "状态：ENABLED/DISABLED", example = "DISABLED") @NotBlank String status
+    ) {
+    }
+
     @Schema(name = "DepartmentResponse", description = "部门响应")
     public record DepartmentResponse(
             @Schema(description = "部门 ID", example = "1") Long id,

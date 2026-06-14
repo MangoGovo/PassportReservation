@@ -66,6 +66,13 @@ class ApiError extends Error {
   }
 }
 
+class AuthExpiredError extends ApiError {
+  constructor(message = '登录已过期，请重新登录。') {
+    super(message, 401);
+    this.name = 'AuthExpiredError';
+  }
+}
+
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ??
   (Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
@@ -110,7 +117,7 @@ export async function login(input: { mobile: string; password: string }) {
   return { token: result.tokenValue, mobile: input.mobile };
 }
 
-export async function register(input: { realName: string; mobile: string; code: string; password: string }) {
+export async function register(input: { realName: string; mobile: string; password: string }) {
   if (!input.realName.trim()) {
     throw new Error('请输入真实姓名。');
   }
@@ -136,6 +143,10 @@ export async function register(input: { realName: string; mobile: string; code: 
 export async function hasCachedLogin() {
   await ensureTokenLoaded();
   return Boolean(authToken);
+}
+
+export function isAuthExpiredError(error: unknown) {
+  return error instanceof AuthExpiredError;
 }
 
 export async function createReservation(input: CreateReservationInput) {
@@ -271,6 +282,10 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   }
 
   const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
+  if (options.auth !== false && (response.status === 401 || payload?.code === 401)) {
+    await clearPersistedToken();
+    throw new AuthExpiredError(payload?.message || undefined);
+  }
   if (!response.ok || !payload || payload.code !== 0) {
     throw new ApiError(payload?.message || `请求失败 (${response.status})`, response.status);
   }
@@ -339,6 +354,8 @@ function timePart(value: string) {
 
 async function persistToken(token: string) {
   authToken = token;
+  tokenLoaded = true;
+  tokenLoadPromise = null;
   if (Platform.OS !== 'web') {
     await SecureStore.setItemAsync(TOKEN_STORAGE_KEY, token);
     return;
@@ -347,6 +364,21 @@ async function persistToken(token: string) {
     globalThis.localStorage?.setItem(TOKEN_STORAGE_KEY, token);
   } catch {
     // Native runtime without localStorage keeps the token in memory for this session.
+  }
+}
+
+async function clearPersistedToken() {
+  authToken = null;
+  tokenLoaded = true;
+  tokenLoadPromise = null;
+  if (Platform.OS !== 'web') {
+    await SecureStore.deleteItemAsync(TOKEN_STORAGE_KEY);
+    return;
+  }
+  try {
+    globalThis.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // Nothing else to clear in restricted web storage environments.
   }
 }
 

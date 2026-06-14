@@ -40,4 +40,5 @@ INSERT IGNORE INTO sys_admin (
 
 INSERT IGNORE INTO sys_admin_role (admin_id, role_id) VALUES
   (1, 1),
-  (1, 3);
+  (1, 3),
+  (1, 4);

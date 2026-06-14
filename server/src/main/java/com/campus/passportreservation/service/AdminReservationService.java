@@ -10,14 +10,12 @@ import com.campus.passportreservation.dto.ReservationDtos.ReservationDetail;
 import com.campus.passportreservation.dto.ReservationDtos.ReservationListItem;
 import com.campus.passportreservation.dto.ReservationDtos.ReservationStatistics;
 import com.campus.passportreservation.entity.ApprovalRecord;
-import com.campus.passportreservation.entity.Companion;
 import com.campus.passportreservation.entity.Reservation;
 import com.campus.passportreservation.entity.SysAdmin;
 import com.campus.passportreservation.enums.ApprovalStatus;
 import com.campus.passportreservation.enums.ReservationType;
 import com.campus.passportreservation.enums.RoleCode;
 import com.campus.passportreservation.mapper.ApprovalRecordMapper;
-import com.campus.passportreservation.mapper.CompanionMapper;
 import com.campus.passportreservation.mapper.ReservationMapper;
 import com.campus.passportreservation.security.StpInterfaceImpl;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +40,6 @@ public class AdminReservationService {
 
     private final ReservationMapper reservationMapper;
     private final ApprovalRecordMapper approvalRecordMapper;
-    private final CompanionMapper companionMapper;
     private final ReservationService reservationService;
     private final AuthService authService;
     private final StpInterfaceImpl stpInterface;
@@ -56,7 +53,7 @@ public class AdminReservationService {
                 .eq(Reservation::getReservationType, ReservationType.PUBLIC.name())
                 .orderByDesc(Reservation::getApplyTime));
         auditLogService.record("PUBLIC_RESERVATION_QUERY", "reservation", null, "SUCCESS", query);
-        return PageResponse.of(result, result.getRecords().stream().map(reservationService::toListItem).toList());
+        return PageResponse.of(result, reservationService.toListItems(result.getRecords()));
     }
 
     public PageResponse<ReservationListItem> officialReservations(AdminReservationQuery query) {
@@ -66,7 +63,7 @@ public class AdminReservationService {
         applyOfficialScope(wrapper, admin);
         Page<Reservation> result = reservationMapper.selectPage(page(query), wrapper.orderByDesc(Reservation::getApplyTime));
         auditLogService.record("OFFICIAL_RESERVATION_QUERY", "reservation", null, "SUCCESS", query);
-        return PageResponse.of(result, result.getRecords().stream().map(reservationService::toListItem).toList());
+        return PageResponse.of(result, reservationService.toListItems(result.getRecords()));
     }
 
     public ReservationDetail detail(Long id) {
@@ -126,14 +123,15 @@ public class AdminReservationService {
             applyOfficialScope(wrapper, admin);
         }
         List<Reservation> records = reservationMapper.selectList(wrapper);
-        Function<Reservation, String> classifier = classifier(dimension);
+        Map<Long, Integer> peopleCounts = reservationService.peopleCounts(records);
+        Function<Reservation, String> classifier = classifier(dimension, records);
         Map<String, List<Reservation>> grouped = records.stream()
                 .collect(Collectors.groupingBy(classifier, LinkedHashMap::new, Collectors.toList()));
         auditLogService.record("RESERVATION_STATISTICS", "reservation", reservationType, "SUCCESS",
                 Map.of("dimension", dimension));
         return grouped.entrySet().stream()
                 .map(entry -> new ReservationStatistics(dimension, entry.getKey(), entry.getValue().size(),
-                        entry.getValue().stream().mapToLong(this::peopleCount).sum()))
+                        entry.getValue().stream().mapToLong(reservation -> peopleCounts.getOrDefault(reservation.getId(), 1)).sum()))
                 .sorted(Comparator.comparing(ReservationStatistics::dimensionValue))
                 .toList();
     }
@@ -189,19 +187,20 @@ public class AdminReservationService {
                 || "ALL".equals(admin.getAuthScope());
     }
 
-    private Function<Reservation, String> classifier(String dimension) {
+    private Function<Reservation, String> classifier(String dimension, List<Reservation> records) {
         return switch (dimension == null ? "" : dimension) {
             case "applyMonth" -> reservation -> reservation.getApplyTime().format(MONTH);
             case "visitMonth" -> reservation -> reservation.getVisitTime().format(MONTH);
-            case "campus" -> reservation -> defaultValue(dictionaryService.campusName(reservation.getCampusId()));
-            case "dept" -> reservation -> defaultValue(dictionaryService.deptName(reservation.getVisitDeptId()));
+            case "campus" -> {
+                Map<Long, String> campusNames = dictionaryService.campusNames(records.stream().map(Reservation::getCampusId).toList());
+                yield reservation -> defaultValue(campusNames.get(reservation.getCampusId()));
+            }
+            case "dept" -> {
+                Map<Long, String> deptNames = dictionaryService.deptNames(records.stream().map(Reservation::getVisitDeptId).toList());
+                yield reservation -> defaultValue(deptNames.get(reservation.getVisitDeptId()));
+            }
             default -> throw new BusinessException("统计维度错误");
         };
-    }
-
-    private long peopleCount(Reservation reservation) {
-        return 1 + companionMapper.selectCount(new LambdaQueryWrapper<Companion>()
-                .eq(Companion::getReservationId, reservation.getId()));
     }
 
     private String defaultValue(String value) {

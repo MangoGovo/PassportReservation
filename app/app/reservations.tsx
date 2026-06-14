@@ -1,6 +1,6 @@
 import { CalendarPlus, ChevronRight, ClipboardList, QrCode, RefreshCw } from 'lucide-react-native';
 import { Link, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 
@@ -8,34 +8,92 @@ import { BottomTabs } from '@/src/components/bottom-tabs';
 import { Card } from '@/src/components/card';
 import { PrimaryButton } from '@/src/components/primary-button';
 import { ScreenContainer } from '@/src/components/screen-container';
+import { SessionExpiredCard } from '@/src/components/session-expired-card';
 import { StatusChip } from '@/src/components/status-chip';
 import { TopBar } from '@/src/components/top-bar';
-import { listMyReservations } from '@/src/services/api';
+import { isAuthExpiredError, listMyReservations } from '@/src/services/api';
 import { colors, spacing, typography } from '@/src/theme';
 import type { ReservationSummary } from '@/src/types';
+
+const LIST_LOADING_DELAY = 180;
 
 export default function ReservationsScreen() {
   const router = useRouter();
   const [results, setResults] = useState<ReservationSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
+  const [authExpired, setAuthExpired] = useState(false);
+  const loadedRef = useRef(false);
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestSeqRef = useRef(0);
+
+  const startLoading = useCallback((immediate = false) => {
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current);
+      loadingTimerRef.current = null;
+    }
+    if (immediate) {
+      setLoading(true);
+      return;
+    }
+    loadingTimerRef.current = setTimeout(() => {
+      loadingTimerRef.current = null;
+      setLoading(true);
+    }, LIST_LOADING_DELAY);
+  }, []);
+
+  const stopLoading = useCallback(() => {
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current);
+      loadingTimerRef.current = null;
+    }
+    setLoading(false);
+  }, []);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    const requestId = ++requestSeqRef.current;
+    startLoading(!loadedRef.current);
     setError('');
+    setAuthExpired(false);
     try {
-      setResults(await listMyReservations());
+      const nextResults = await listMyReservations();
+      if (requestId === requestSeqRef.current) {
+        setResults(nextResults);
+      }
     } catch (requestError) {
-      setResults([]);
+      if (requestId !== requestSeqRef.current) {
+        return;
+      }
+      if (!loadedRef.current) {
+        setResults([]);
+      }
+      if (isAuthExpiredError(requestError)) {
+        setAuthExpired(true);
+        return;
+      }
       setError(requestError instanceof Error ? requestError.message : '预约记录加载失败');
     } finally {
-      setLoading(false);
+      if (requestId === requestSeqRef.current) {
+        loadedRef.current = true;
+        setLoaded(true);
+        stopLoading();
+      }
     }
-  }, []);
+  }, [startLoading, stopLoading]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    return () => {
+      requestSeqRef.current += 1;
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -58,7 +116,13 @@ export default function ReservationsScreen() {
           />
         </Card>
 
-        {loading ? <ReservationListSkeleton /> : null}
+        {loading && !loaded ? <ReservationListSkeleton /> : null}
+
+        {loading && loaded ? <RefreshingNotice /> : null}
+
+        {!loading && authExpired ? (
+          <SessionExpiredCard onLogin={() => router.push({ pathname: '/login', params: { redirect: '/reservations' } })} />
+        ) : null}
 
         {!loading && error ? (
           <Card style={{ gap: spacing.md, alignItems: 'center' }}>
@@ -72,7 +136,7 @@ export default function ReservationsScreen() {
           </Card>
         ) : null}
 
-        {!loading && !error && results.length ? (
+        {!authExpired && !error && results.length ? (
           <View style={{ gap: spacing.md }}>
             <Text selectable style={{ ...typography.labelBold, color: colors.outline }}>
               预约记录
@@ -83,7 +147,7 @@ export default function ReservationsScreen() {
           </View>
         ) : null}
 
-        {!loading && !error && !results.length ? (
+        {!loading && loaded && !authExpired && !error && !results.length ? (
           <Card style={{ gap: spacing.md, alignItems: 'center' }}>
             <CalendarPlus size={34} color={colors.primary} />
             <Text selectable style={{ ...typography.bodyLgStrong, color: colors.onSurface }}>
@@ -97,6 +161,17 @@ export default function ReservationsScreen() {
         ) : null}
       </ScreenContainer>
     </>
+  );
+}
+
+function RefreshingNotice() {
+  return (
+    <Card style={{ paddingVertical: spacing.sm, gap: spacing.sm, flexDirection: 'row', alignItems: 'center' }}>
+      <RefreshCw size={16} color={colors.primary} />
+      <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant }}>
+        正在刷新预约记录
+      </Text>
+    </Card>
   );
 }
 

@@ -6,7 +6,8 @@ import { Text, View } from 'react-native';
 import { Card } from '@/src/components/card';
 import { PassCard, PassCardSkeleton } from '@/src/components/pass-card';
 import { PrimaryButton } from '@/src/components/primary-button';
-import { getCurrentPass } from '@/src/services/api';
+import { SessionExpiredCard } from '@/src/components/session-expired-card';
+import { getCurrentPass, isAuthExpiredError } from '@/src/services/api';
 import { colors, spacing, typography } from '@/src/theme';
 import type { PassDetail } from '@/src/types';
 
@@ -15,14 +16,20 @@ export function CurrentPassContent() {
   const [detail, setDetail] = useState<PassDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [authExpired, setAuthExpired] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
+    setAuthExpired(false);
     try {
       setDetail(await getCurrentPass());
     } catch (requestError) {
       setDetail(null);
+      if (isAuthExpiredError(requestError)) {
+        setAuthExpired(true);
+        return;
+      }
       setError(requestError instanceof Error ? requestError.message : '通行码加载失败');
     } finally {
       setLoading(false);
@@ -35,6 +42,10 @@ export function CurrentPassContent() {
 
   if (loading) {
     return <PassCardSkeleton />;
+  }
+
+  if (authExpired) {
+    return <SessionExpiredCard onLogin={() => router.push({ pathname: '/login', params: { redirect: '/pass' } })} />;
   }
 
   if (error) {

@@ -1,7 +1,8 @@
 import { CalendarCheck, QrCode } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing, typography } from '@/src/theme';
@@ -19,6 +20,22 @@ export function BottomTabs({
 }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [tabsWidth, setTabsWidth] = useState(0);
+  const activeIndex = active === 'home' ? 0 : 1;
+  const highlightProgress = useSharedValue(activeIndex);
+  const tabWidth = tabsWidth > 0 ? (tabsWidth - spacing.sm) / 2 : 0;
+
+  useEffect(() => {
+    highlightProgress.value = withTiming(activeIndex, { duration: 220 });
+  }, [activeIndex, highlightProgress]);
+
+  const highlightStyle = useAnimatedStyle(
+    () => ({
+      width: tabWidth,
+      transform: [{ translateX: highlightProgress.value * (tabWidth + spacing.sm) }],
+    }),
+    [tabWidth],
+  );
 
   return (
     <View
@@ -36,25 +53,52 @@ export function BottomTabs({
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: spacing.lg,
-        gap: spacing.sm,
       }}
     >
-      <TabButton
-        active={active === 'home'}
-        label="访问预约"
-        icon={<CalendarCheck />}
-        onPress={active === 'home' ? undefined : onHomePress ?? (() => router.replace('/'))}
-      />
-      {onPassPress ? (
-        <TabButton active={active === 'pass'} label="我的通行" icon={<QrCode />} onPress={onPassPress} />
-      ) : (
+      <View
+        onLayout={(event) => setTabsWidth(event.nativeEvent.layout.width)}
+        style={{
+          flex: 1,
+          maxWidth: 368,
+          height: 50,
+          flexDirection: 'row',
+          gap: spacing.sm,
+          position: 'relative',
+        }}
+      >
+        {tabWidth > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              {
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                borderRadius: 12,
+                backgroundColor: colors.primaryContainer,
+              },
+              highlightStyle,
+            ]}
+          />
+        ) : null}
         <TabButton
-          active={active === 'pass'}
-          label="我的通行"
-          icon={<QrCode />}
-          onPress={active === 'pass' ? undefined : () => router.replace('/pass')}
+          active={active === 'home'}
+          label="访问预约"
+          icon={<CalendarCheck />}
+          onPress={active === 'home' ? undefined : onHomePress ?? (() => router.replace('/'))}
         />
-      )}
+        {onPassPress ? (
+          <TabButton active={active === 'pass'} label="我的通行" icon={<QrCode />} onPress={onPassPress} />
+        ) : (
+          <TabButton
+            active={active === 'pass'}
+            label="我的通行"
+            icon={<QrCode />}
+            onPress={active === 'pass' ? undefined : () => router.replace('/pass')}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -75,14 +119,14 @@ function TabButton({
       onPress={onPress}
       style={({ pressed }) => ({
         flex: 1,
-        maxWidth: 180,
         height: 50,
         borderRadius: 12,
         paddingHorizontal: spacing.sm,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: active ? colors.primaryContainer : pressed ? colors.surfaceContainerLow : 'transparent',
+        backgroundColor: pressed && !active ? colors.surfaceContainerLow : 'transparent',
         transform: [{ scale: pressed ? 0.96 : 1 }],
+        zIndex: 1,
       })}
     >
       {iconWithColor(icon, active ? colors.onPrimaryContainer : colors.onSurfaceVariant)}

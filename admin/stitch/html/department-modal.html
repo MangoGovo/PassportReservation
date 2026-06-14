@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>部门管理 - 校园安全管理系统</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#adc7f7",
+                    "outline": "#74777f",
+                    "on-surface-variant": "#43474e",
+                    "background": "#faf9fd",
+                    "inverse-surface": "#2f3033",
+                    "on-secondary-fixed-variant": "#005231",
+                    "primary-fixed": "#d6e3ff",
+                    "secondary-container": "#9ff5c1",
+                    "tertiary-fixed-dim": "#f8bc4b",
+                    "on-tertiary-container": "#cb9524",
+                    "on-surface": "#1a1c1e",
+                    "tertiary-container": "#493100",
+                    "on-secondary-fixed": "#002111",
+                    "on-error": "#ffffff",
+                    "primary": "#002045",
+                    "on-tertiary-fixed-variant": "#5f4100",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "on-primary-fixed": "#001b3c",
+                    "outline-variant": "#c4c6cf",
+                    "primary-container": "#1a365d",
+                    "inverse-primary": "#adc7f7",
+                    "secondary": "#0a6c44",
+                    "inverse-on-surface": "#f1f0f4",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#2d1d00",
+                    "secondary-fixed-dim": "#83d8a6",
+                    "surface-container-high": "#e9e7eb",
+                    "surface-container": "#efedf1",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#dad9dd",
+                    "surface-tint": "#455f88",
+                    "surface-container-highest": "#e3e2e6",
+                    "secondary-fixed": "#9ff5c1",
+                    "surface-container-low": "#f4f3f7",
+                    "surface-variant": "#e3e2e6",
+                    "on-primary-container": "#86a0cd",
+                    "on-primary": "#ffffff",
+                    "on-background": "#1a1c1e",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#167249",
+                    "tertiary-fixed": "#ffdeaa",
+                    "surface-bright": "#faf9fd",
+                    "surface": "#faf9fd",
+                    "on-tertiary-fixed": "#271900",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "label-bold": ["Work Sans"],
+                    "code-display": ["Work Sans"],
+                    "body-md": ["Work Sans"],
+                    "headline-lg": ["Work Sans"],
+                    "body-lg": ["Work Sans"],
+                    "headline-md": ["Work Sans"]
+            },
+            "fontSize": {
+                    "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "code-display": ["48px", {"lineHeight": "56px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Work Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .modal-overlay {
+            background-color: rgba(0, 32, 69, 0.4);
+            backdrop-filter: blur(4px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c4c6cf;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- SideNavBar (Execution from JSON) -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-primary shadow-sm flex flex-col p-4 z-50">
+<div class="mb-8 px-4">
+<h1 class="text-headline-md font-headline-md text-on-primary">Campus Security</h1>
+<p class="text-on-primary/70 font-label-bold text-[10px] tracking-wider uppercase">Management System</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed hover:bg-on-primary-fixed-variant transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed hover:bg-on-primary-fixed-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+<span class="font-body-md text-body-md">Admin</span>
+</a>
+<!-- Active Navigation State for "Department" page -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-fixed-dim text-on-primary-fixed font-bold rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">corporate_fare</span>
+<span class="font-body-md text-body-md">Department</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed hover:bg-on-primary-fixed-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-body-md text-body-md">Public Reservations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed hover:bg-on-primary-fixed-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md">Official Reservations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed hover:bg-on-primary-fixed-variant transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-body-md text-body-md">Audit Logs</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar (Execution from JSON) -->
+<header class="flex justify-between items-center px-6 h-16 bg-surface-container-low border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-full pl-10 pr-4 py-2 text-body-md focus:ring-2 focus:ring-primary" placeholder="Search departments..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:text-primary transition-colors active:opacity-70">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:text-primary transition-colors active:opacity-70">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Administrator Profile" data-alt="A professional headshot of a campus administrator wearing a dark suit and a crisp white shirt. The background is a blurred office environment with institutional colors, evoking a sense of corporate authority and professional reliability. The lighting is soft and even, highlighting a trustworthy and experienced facial expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPG7NH0pWqWyrVKAh0Ebbj3-B4JdggMMheepC44z5Zwh-j-kCx-W5_1g6Fkc6UqtuLmcxlRU8dxk4ygXf_8fULZr-nrhBoZYbQQmWDRrgmexB22VLVF3mXjzQVOEEFpeyqnlE6vPulypqafLGfkZR_gFURKGDt3waYDE6wZweqBxAQdQ7l9V7mLQ_D_jtoRqiohYjW7DJxoBL_HbJaKqhy0VBfswxwIdZSMqTiTvaPBpEjzSN20Wzl3SGhZRlhATkb99UoErfhnGc"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Department Management</h2>
+<p class="text-on-surface-variant font-body-md mt-1">Configure and manage institutional organizational structures.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-bold flex items-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-sm" onclick="openModal()">
+<span class="material-symbols-outlined">add_circle</span>
+                    Add New Department
+                </button>
+</div>
+<!-- Bento Grid of Departments -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Example Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-outline-variant/30 group hover:border-primary/50 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container rounded-lg">
+<span class="material-symbols-outlined text-secondary">school</span>
+</div>
+<span class="px-2 py-1 bg-secondary-container/20 text-on-secondary-container text-label-bold rounded-full">College</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-1">School of Computer Science</h3>
+<p class="text-on-surface-variant text-body-md mb-4">ID: DEPT-2024-001</p>
+<div class="flex justify-between items-center pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-label-bold text-on-surface-variant">Active</span>
+</div>
+<button class="text-primary hover:bg-primary-fixed/20 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(0,0,0,0.05)] border border-outline-variant/30 group hover:border-primary/50 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-fixed-dim/20 rounded-lg">
+<span class="material-symbols-outlined text-primary">account_balance</span>
+</div>
+<span class="px-2 py-1 bg-primary-fixed-dim/20 text-on-primary-fixed-variant text-label-bold rounded-full">Administration</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-1">Office of Public Safety</h3>
+<p class="text-on-surface-variant text-body-md mb-4">ID: DEPT-2024-005</p>
+<div class="flex justify-between items-center pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-label-bold text-on-surface-variant">Active</span>
+</div>
+<button class="text-primary hover:bg-primary-fixed/20 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+</div>
+<!-- Graphic Card -->
+<div class="bg-primary-container relative overflow-hidden rounded-xl p-6 flex flex-col justify-end min-h-[200px]">
+<div class="absolute inset-0 opacity-40">
+
+</div>
+<div class="relative z-10">
+<h3 class="text-on-primary font-headline-md text-headline-md">System Statistics</h3>
+<p class="text-on-primary-container font-body-md">42 Departments currently registered under Campus Security protocol.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal: Add/Edit Department (The Goal) -->
+<div class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300" id="departmentModal">
+<div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-2xl transform scale-95 transition-transform duration-300 overflow-hidden">
+<!-- Modal Header -->
+<div class="px-6 py-4 bg-primary flex justify-between items-center">
+<div>
+<h3 class="text-on-primary font-headline-md text-headline-md">部门信息</h3>
+<p class="text-on-primary/60 text-[10px] font-label-bold tracking-widest uppercase">Department Details</p>
+</div>
+<button class="text-on-primary hover:bg-white/10 p-2 rounded-full transition-colors" onclick="closeModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Content (Form) -->
+<form class="p-6 space-y-6" id="departmentForm">
+<!-- ID Selection -->
+<div class="space-y-2">
+<label class="block font-label-bold text-on-surface-variant">部门编号</label>
+<div class="flex gap-3">
+<label class="flex-1 cursor-pointer group">
+<input checked="" class="hidden peer" name="id_type" type="radio" value="auto"/>
+<div class="flex items-center justify-center gap-2 border border-outline-variant p-3 rounded-lg peer-checked:border-primary peer-checked:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined text-outline group-peer-checked:text-primary">magic_button</span>
+<span class="font-body-md text-on-surface-variant group-peer-checked:text-primary group-peer-checked:font-bold">自动生成</span>
+</div>
+</label>
+<label class="flex-1 cursor-pointer group">
+<input class="hidden peer" name="id_type" type="radio" value="manual"/>
+<div class="flex items-center justify-center gap-2 border border-outline-variant p-3 rounded-lg peer-checked:border-primary peer-checked:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined text-outline group-peer-checked:text-primary">edit</span>
+<span class="font-body-md text-on-surface-variant group-peer-checked:text-primary group-peer-checked:font-bold">手动输入</span>
+</div>
+</label>
+</div>
+<div class="hidden mt-2" id="manualIdInput">
+<input class="w-full border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="输入编号 (例: DEPT-001)" type="text"/>
+</div>
+</div>
+<!-- Department Name -->
+<div class="space-y-2">
+<label class="block font-label-bold text-on-surface-variant">部门名称</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">corporate_fare</span>
+<input class="w-full border border-outline-variant rounded-lg pl-11 pr-4 py-3 text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="输入部门名称..." type="text"/>
+</div>
+</div>
+<!-- Department Type -->
+<div class="space-y-2">
+<label class="block font-label-bold text-on-surface-variant">部门类型</label>
+<select class="w-full border border-outline-variant rounded-lg px-4 py-3 text-body-md appearance-none bg-no-repeat bg-[right_1rem_center] focus:border-primary focus:ring-1 focus:ring-primary transition-all" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%2343474e%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3E%3C/svg%3E')">
+<option value="administrative">行政部门 (Administrative)</option>
+<option value="college">学院 (College)</option>
+<option value="direct">直属单位 (Directly Affiliated)</option>
+</select>
+</div>
+<!-- Status Switch -->
+<div class="flex justify-between items-center py-2">
+<div>
+<span class="block font-label-bold text-on-surface-variant">状态开关</span>
+<span class="text-body-md text-on-surface-variant/70">关闭后该部门将无法进行权限验证</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<!-- Modal Footer Actions -->
+<div class="flex gap-4 pt-4">
+<button class="flex-1 border border-outline text-on-surface-variant font-label-bold py-3 rounded-lg hover:bg-surface-container transition-colors active:scale-95" onclick="closeModal()" type="button">
+                        取消 (Cancel)
+                    </button>
+<button class="flex-1 bg-primary text-on-primary font-label-bold py-3 rounded-lg hover:bg-primary-container transition-all shadow-sm active:scale-95" type="submit">
+                        保存 (Save)
+                    </button>
+</div>
+</form>
+</div>
+</div>
+<script>
+        const modal = document.getElementById('departmentModal');
+        const modalContent = modal.querySelector('.transform');
+        const idTypeInputs = document.getElementsByName('id_type');
+        const manualIdContainer = document.getElementById('manualIdInput');
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                modal.classList.remove('opacity-0');
+                modalContent.classList.add('scale-100');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            modalContent.classList.remove('scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        idTypeInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.value === 'manual') {
+                    manualIdContainer.classList.remove('hidden');
+                    manualIdContainer.classList.add('animate-in', 'fade-in', 'slide-in-from-top-2');
+                } else {
+                    manualIdContainer.classList.add('hidden');
+                }
+            });
+        });
+
+        // Close on clicking outside the modal content
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Form submission prevent default
+        document.getElementById('departmentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Settings saved successfully!');
+            closeModal();
+        });
+
+        // Initially open for demonstration if needed, or keep closed.
+        // openModal();
+    </script>
+</body></html>

@@ -1,10 +1,14 @@
 package com.campus.passportreservation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.passportreservation.common.BusinessException;
+import com.campus.passportreservation.common.PageResponse;
 import com.campus.passportreservation.dto.DictionaryDtos.CampusResponse;
+import com.campus.passportreservation.dto.DictionaryDtos.DepartmentQuery;
 import com.campus.passportreservation.dto.DictionaryDtos.DepartmentRequest;
 import com.campus.passportreservation.dto.DictionaryDtos.DepartmentResponse;
+import com.campus.passportreservation.dto.DictionaryDtos.DepartmentStatusRequest;
 import com.campus.passportreservation.entity.Campus;
 import com.campus.passportreservation.entity.Dept;
 import com.campus.passportreservation.mapper.CampusMapper;
@@ -14,7 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +43,20 @@ public class DictionaryService {
                 .stream()
                 .map(this::toDepartmentResponse)
                 .toList();
+    }
+
+    public PageResponse<DepartmentResponse> adminDepartments(DepartmentQuery query) {
+        long page = query.page() == null || query.page() < 1 ? 1 : query.page();
+        long size = query.size() == null || query.size() < 1 ? 20 : Math.min(query.size(), 100);
+        Page<Dept> result = deptMapper.selectPage(Page.of(page, size), new LambdaQueryWrapper<Dept>()
+                .and(query.keyword() != null && !query.keyword().isBlank(), wrapper -> wrapper
+                        .like(Dept::getDeptName, query.keyword())
+                        .or()
+                        .like(Dept::getDeptCode, query.keyword()))
+                .eq(query.deptType() != null && !query.deptType().isBlank(), Dept::getDeptType, query.deptType())
+                .eq(query.status() != null && !query.status().isBlank(), Dept::getStatus, query.status())
+                .orderByAsc(Dept::getDeptCode));
+        return PageResponse.of(result, result.getRecords().stream().map(this::toDepartmentResponse).toList());
     }
 
     public List<CampusResponse> campuses() {
@@ -93,6 +115,19 @@ public class DictionaryService {
         auditLogService.record("DEPT_DELETE", "dept", id, "SUCCESS", null);
     }
 
+    @Transactional
+    public DepartmentResponse updateDepartmentStatus(Long id, DepartmentStatusRequest request) {
+        Dept dept = deptMapper.selectById(id);
+        if (dept == null) {
+            throw new BusinessException("部门不存在");
+        }
+        dept.setStatus(defaultStatus(request.status()));
+        dept.setUpdatedAt(LocalDateTime.now());
+        deptMapper.updateById(dept);
+        auditLogService.record("DEPT_STATUS_UPDATE", "dept", id, "SUCCESS", request);
+        return toDepartmentResponse(dept);
+    }
+
     public DepartmentResponse department(Long id) {
         return toDepartmentResponse(deptMapper.selectById(id));
     }
@@ -102,9 +137,39 @@ public class DictionaryService {
         return campus == null ? null : campus.getCampusName();
     }
 
+    public Map<Long, String> campusNames(Collection<Long> campusIds) {
+        List<Long> ids = distinctIds(campusIds);
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return campusMapper.selectList(new LambdaQueryWrapper<Campus>().in(Campus::getId, ids))
+                .stream()
+                .collect(Collectors.toMap(Campus::getId, Campus::getCampusName, (left, right) -> left));
+    }
+
     public String deptName(Long deptId) {
         Dept dept = deptId == null ? null : deptMapper.selectById(deptId);
         return dept == null ? null : dept.getDeptName();
+    }
+
+    public Map<Long, String> deptNames(Collection<Long> deptIds) {
+        List<Long> ids = distinctIds(deptIds);
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return deptMapper.selectList(new LambdaQueryWrapper<Dept>().in(Dept::getId, ids))
+                .stream()
+                .collect(Collectors.toMap(Dept::getId, Dept::getDeptName, (left, right) -> left));
+    }
+
+    private List<Long> distinctIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return ids.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
     }
 
     private DepartmentResponse toDepartmentResponse(Dept dept) {

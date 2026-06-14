@@ -38,4 +38,13 @@ public final class AuditDtos {
             @Schema(description = "HMAC-SHA256 完整性摘要") String hmacValue
     ) {
     }
+
+    @Schema(name = "AuditLogSummaryResponse", description = "审计日志摘要")
+    public record AuditLogSummaryResponse(
+            @Schema(description = "今日活跃管理员数", example = "24") long todayActiveAdminCount,
+            @Schema(description = "今日操作总数", example = "256") long todayOperationCount,
+            @Schema(description = "今日异常或失败数", example = "2") long warningCount,
+            @Schema(description = "异常频率，单位次/秒", example = "0.05") double warningRatePerSecond
+    ) {
+    }
 }

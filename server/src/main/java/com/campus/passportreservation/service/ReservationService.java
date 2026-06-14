@@ -1,6 +1,7 @@
 package com.campus.passportreservation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.passportreservation.common.BusinessException;
 import com.campus.passportreservation.common.PageResponse;
@@ -39,10 +40,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -125,7 +129,7 @@ public class ReservationService {
                 .eq(Reservation::getIdCardHash, cryptoService.queryHash(request.idCard()))
                 .eq(Reservation::getPhoneHash, cryptoService.queryHash(request.phone()))
                 .orderByDesc(Reservation::getApplyTime));
-        return PageResponse.of(result, result.getRecords().stream().map(this::toListItem).toList());
+        return PageResponse.of(result, toListItems(result.getRecords()));
     }
 
     public PageResponse<ReservationListItem> listMine(Long pageValue, Long sizeValue) {
@@ -136,7 +140,7 @@ public class ReservationService {
         Page<Reservation> result = reservationMapper.selectPage(pageRequest, new LambdaQueryWrapper<Reservation>()
                 .eq(Reservation::getMobileUserId, mobileUserId)
                 .orderByDesc(Reservation::getApplyTime));
-        return PageResponse.of(result, result.getRecords().stream().map(this::toListItem).toList());
+        return PageResponse.of(result, toListItems(result.getRecords()));
     }
 
     public ReservationDetail detailForMobile(Long id) {
@@ -208,16 +212,58 @@ public class ReservationService {
     }
 
     public ReservationListItem toListItem(Reservation reservation) {
-        String idCard = cryptoService.decrypt(reservation.getIdCardCipher());
-        String phone = cryptoService.decrypt(reservation.getPhoneCipher());
         int peopleCount = 1 + companionMapper.selectCount(new LambdaQueryWrapper<Companion>()
                 .eq(Companion::getReservationId, reservation.getId())).intValue();
+        return toListItem(reservation, dictionaryService.campusName(reservation.getCampusId()),
+                dictionaryService.deptName(reservation.getVisitDeptId()), peopleCount);
+    }
+
+    public List<ReservationListItem> toListItems(List<Reservation> reservations) {
+        if (reservations == null || reservations.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, String> campusNames = dictionaryService.campusNames(reservations.stream()
+                .map(Reservation::getCampusId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        Map<Long, String> deptNames = dictionaryService.deptNames(reservations.stream()
+                .map(Reservation::getVisitDeptId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        Map<Long, Integer> peopleCounts = peopleCounts(reservations);
+        return reservations.stream()
+                .map(reservation -> toListItem(
+                        reservation,
+                        campusNames.get(reservation.getCampusId()),
+                        deptNames.get(reservation.getVisitDeptId()),
+                        peopleCounts.getOrDefault(reservation.getId(), 1)))
+                .toList();
+    }
+
+    public Map<Long, Integer> peopleCounts(List<Reservation> reservations) {
+        if (reservations == null || reservations.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Integer> companionCounts = companionCounts(reservations.stream()
+                .map(Reservation::getId)
+                .filter(Objects::nonNull)
+                .toList());
+        return reservations.stream()
+                .map(Reservation::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toMap(id -> id, id -> 1 + companionCounts.getOrDefault(id, 0)));
+    }
+
+    private ReservationListItem toListItem(Reservation reservation, String campusName, String deptName, int peopleCount) {
+        String idCard = cryptoService.decrypt(reservation.getIdCardCipher());
+        String phone = cryptoService.decrypt(reservation.getPhoneCipher());
         return new ReservationListItem(
                 reservation.getId(),
                 reservation.getReservationNo(),
                 reservation.getReservationType(),
                 reservation.getCampusId(),
-                dictionaryService.campusName(reservation.getCampusId()),
+                campusName,
                 reservation.getApplyTime(),
                 reservation.getVisitTime(),
                 reservation.getOrganization(),
@@ -225,11 +271,51 @@ public class ReservationService {
                 MaskingUtils.maskIdCard(idCard),
                 MaskingUtils.maskPhone(phone),
                 reservation.getVisitDeptId(),
-                dictionaryService.deptName(reservation.getVisitDeptId()),
+                deptName,
                 reservation.getReceptionist(),
                 reservation.getApprovalStatus(),
                 peopleCount
         );
+    }
+
+    private Map<Long, Integer> companionCounts(List<Long> reservationIds) {
+        if (reservationIds == null || reservationIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Integer> counts = new HashMap<>();
+        companionMapper.selectMaps(new QueryWrapper<Companion>()
+                .select("reservation_id AS reservationId", "COUNT(*) AS companionCount")
+                .in("reservation_id", reservationIds)
+                .groupBy("reservation_id")).forEach(row -> {
+            Long reservationId = longValue(firstValue(row, "reservationId", "reservation_id", "RESERVATIONID", "RESERVATION_ID"));
+            if (reservationId != null) {
+                counts.merge(reservationId, intValue(firstValue(row, "companionCount", "companion_count", "COMPANIONCOUNT", "COMPANION_COUNT")), Integer::sum);
+            }
+        });
+        return counts;
+    }
+
+    private Object firstValue(Map<String, Object> row, String... keys) {
+        for (String key : keys) {
+            if (row.containsKey(key)) {
+                return row.get(key);
+            }
+        }
+        return null;
+    }
+
+    private Long longValue(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return value == null ? null : Long.valueOf(String.valueOf(value));
+    }
+
+    private Integer intValue(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return value == null ? 0 : Integer.valueOf(String.valueOf(value));
     }
 
     public PassStatus passStatus(Reservation reservation) {

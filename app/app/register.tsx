@@ -5,7 +5,6 @@ import {
   Info,
   Lock,
   LockKeyhole,
-  MailCheck,
   Smartphone,
   User,
 } from 'lucide-react-native';
@@ -26,7 +25,6 @@ export default function RegisterScreen() {
   const { redirect } = useLocalSearchParams<{ redirect?: string }>();
   const [realName, setRealName] = useState('');
   const [mobile, setMobile] = useState('');
-  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -45,7 +43,7 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      await register({ realName, mobile, code, password });
+      await register({ realName, mobile, password });
       router.replace((redirect as '/reserve') || '/reserve');
     } catch (error) {
       Alert.alert('注册失败', error instanceof Error ? error.message : '请检查注册信息');
@@ -83,33 +81,6 @@ export default function RegisterScreen() {
             placeholder="请输入11位手机号"
             leftIcon={Smartphone}
           />
-          <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-end' }}>
-            <View style={{ flex: 1 }}>
-              <TextField
-                label="验证码"
-                value={code}
-                onChangeText={setCode}
-                placeholder="输入验证码"
-                leftIcon={MailCheck}
-              />
-            </View>
-            <Pressable
-              style={({ pressed }) => ({
-                height: 48,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                borderWidth: 1,
-                borderColor: colors.outlineVariant,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: pressed ? colors.surfaceContainer : colors.surfaceContainerLow,
-              })}
-            >
-              <Text selectable style={{ ...typography.bodyMdStrong, color: colors.primary }}>
-                获取验证码
-              </Text>
-            </Pressable>
-          </View>
           <TextField
             label="设置密码"
             value={password}

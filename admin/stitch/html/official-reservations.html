@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>校园通行码 - 预约管理</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdeaa",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "tertiary": "#2d1d00",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "outline": "#74777f",
+                        "tertiary-fixed-dim": "#f8bc4b",
+                        "outline-variant": "#c4c6cf",
+                        "secondary-container": "#9ff5c1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#002111",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "primary": "#002045",
+                        "secondary-fixed": "#9ff5c1",
+                        "inverse-surface": "#2f3033",
+                        "secondary": "#0a6c44",
+                        "on-surface-variant": "#43474e",
+                        "surface": "#faf9fd",
+                        "tertiary-container": "#493100",
+                        "surface-container-highest": "#e3e2e6",
+                        "background": "#faf9fd",
+                        "on-tertiary-container": "#cb9524",
+                        "surface-container": "#efedf1",
+                        "surface-variant": "#e3e2e6",
+                        "primary-container": "#1a365d",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc7f7",
+                        "on-secondary-fixed-variant": "#005231",
+                        "surface-container-low": "#f4f3f7",
+                        "on-background": "#1a1c1e",
+                        "inverse-primary": "#adc7f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf9fd",
+                        "secondary-fixed-dim": "#83d8a6",
+                        "surface-dim": "#dad9dd",
+                        "surface-tint": "#455f88",
+                        "on-secondary-container": "#167249",
+                        "on-tertiary-fixed": "#271900",
+                        "on-surface": "#1a1c1e",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#86a0cd",
+                        "primary-fixed": "#d6e3ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e9e7eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "1.5rem",
+                        "container-padding": "1rem",
+                        "component-height-md": "3rem",
+                        "stack-gap": "0.75rem",
+                        "inline-padding": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Work Sans"],
+                        "body-lg": ["Work Sans"],
+                        "code-display": ["Work Sans"],
+                        "label-bold": ["Work Sans"],
+                        "headline-md": ["Work Sans"],
+                        "headline-lg": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "code-display": ["48px", {"lineHeight": "56px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Work Sans', sans-serif; background-color: #faf9fd; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e3e2e6; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #c4c6cf; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar (Desktop) -->
+<aside class="hidden md:flex flex-col w-64 bg-surface-container-low border-r border-outline-variant">
+<div class="h-16 flex items-center px-6 border-b border-outline-variant">
+<span class="text-primary font-headline-lg text-headline-lg tracking-tight">校园通行码</span>
+</div>
+<nav class="flex-1 px-3 py-4 space-y-2">
+<div class="flex flex-col items-start justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-3 transition-opacity">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-label-bold text-label-bold">预约管理</span>
+</div>
+</div>
+<div class="flex flex-col items-start justify-center text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="font-label-bold text-label-bold">我的通行</span>
+</div>
+</div>
+<div class="flex flex-col items-start justify-center text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-xl transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-bold text-label-bold">个人中心</span>
+</div>
+</div>
+</nav>
+<div class="p-6 border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+</div>
+<div>
+<p class="text-label-bold font-label-bold text-on-surface">管理员</p>
+<p class="text-[10px] text-on-surface-variant">信息中心</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 md:relative bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex items-center px-inline-padding h-component-height-md w-full">
+<div class="flex items-center gap-4 w-full">
+<span class="material-symbols-outlined text-primary cursor-pointer md:hidden">menu</span>
+<h1 class="text-headline-md font-headline-md text-primary dark:text-inverse-primary flex-1 md:flex-none">预约管理</h1>
+<div class="hidden md:flex flex-1 justify-end items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">help_outline</span>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto mt-12 md:mt-0 p-container-padding custom-scrollbar">
+<div class="max-w-6xl mx-auto space-y-6 pb-24">
+<!-- Filter Bar -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-label-bold font-label-bold text-on-surface-variant">搜索姓名</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full h-12 pl-10 pr-4 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md font-body-md" placeholder="请输入姓名" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-label-bold font-label-bold text-on-surface-variant">证件号</label>
+<input class="w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md font-body-md" placeholder="身份证号/学号" type="text"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-label-bold font-label-bold text-on-surface-variant">所在部门</label>
+<select class="w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md font-body-md appearance-none">
+<option>全部部门</option>
+<option>信息中心</option>
+<option>教务处</option>
+<option>后勤保障部</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-label-bold font-label-bold text-on-surface-variant">审批状态</label>
+<select class="w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md font-body-md appearance-none">
+<option>全部状态</option>
+<option>Pending</option>
+<option>Approved</option>
+<option>Rejected</option>
+</select>
+</div>
+</div>
+<div class="mt-4 flex justify-end gap-3">
+<button class="px-6 h-10 rounded-full border border-primary text-primary font-label-bold text-label-bold hover:bg-primary/5 transition-colors">重置</button>
+<button class="px-6 h-10 rounded-full bg-primary text-on-primary font-label-bold text-label-bold shadow-sm hover:opacity-90 active:scale-95 transition-all">查询</button>
+</div>
+</section>
+<!-- Data Table Section -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant">预约编号</th>
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant">申请人</th>
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant">部门</th>
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant">预约时间</th>
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant">状态</th>
+<th class="px-6 py-4 text-label-bold font-label-bold text-on-surface-variant text-right">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-body-md font-body-md">R20260608001</td>
+<td class="px-6 py-4 text-body-md font-body-md">张*三</td>
+<td class="px-6 py-4 text-body-md font-body-md">信息中心</td>
+<td class="px-6 py-4 text-body-md font-body-md">2026-06-08</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-semibold hover:bg-surface-container-high transition-colors">Details</button>
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:opacity-90 transition-opacity">Approve</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-body-md font-body-md">R20260608002</td>
+<td class="px-6 py-4 text-body-md font-body-md">李*四</td>
+<td class="px-6 py-4 text-body-md font-body-md">教务处</td>
+<td class="px-6 py-4 text-body-md font-body-md">2026-06-09</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-container/30 text-on-secondary-container">Approved</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-semibold hover:bg-surface-container-high transition-colors">Details</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-highest text-on-surface-variant text-xs font-semibold cursor-not-allowed opacity-50">Approve</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-body-md font-body-md">R20260608003</td>
+<td class="px-6 py-4 text-body-md font-body-md">王*五</td>
+<td class="px-6 py-4 text-body-md font-body-md">后勤部</td>
+<td class="px-6 py-4 text-body-md font-body-md">2026-06-10</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-semibold hover:bg-surface-container-high transition-colors">Details</button>
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:opacity-90 transition-opacity">Approve</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 text-body-md font-body-md">R20260608004</td>
+<td class="px-6 py-4 text-body-md font-body-md">赵*六</td>
+<td class="px-6 py-4 text-body-md font-body-md">图书馆</td>
+<td class="px-6 py-4 text-body-md font-body-md">2026-06-11</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-container/30 text-error">Rejected</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-semibold hover:bg-surface-container-high transition-colors">Details</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-highest text-on-surface-variant text-xs font-semibold cursor-not-allowed opacity-50">Approve</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 flex items-center justify-between border-t border-outline-variant/30">
+<p class="text-body-md font-body-md text-on-surface-variant">显示 1 到 4，共 24 条记录</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary text-sm font-semibold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all text-sm font-semibold">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="flex flex-col items-center gap-2 py-section-margin mb-20 text-on-surface-variant dark:text-outline-variant text-body-md font-body-md">
+<p>© 2024 校园通行管理系统 | 某某大学信息化中心</p>
+<div class="flex gap-4">
+<a class="hover:text-primary transition-colors" href="#">隐私政策</a>
+<a class="hover:text-primary transition-colors" href="#">使用指南</a>
+</div>
+</footer>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface border-t border-outline-variant dark:border-outline shadow-sm flex justify-around items-center h-16 px-2">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 scale-95 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined">event_available</span>
+<span class="text-label-bold font-label-bold">预约管理</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 scale-95 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="text-label-bold font-label-bold">我的通行</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 scale-95 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-bold font-label-bold">个人中心</span>
+</div>
+</nav>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('button:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.add('active:opacity-70');
+                setTimeout(() => this.classList.remove('active:opacity-70'), 200);
+            });
+        });
+
+        // Simple table hover effect enhancement
+        const tableRows = document.querySelectorAll('tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateY(-1px)';
+                row.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'none';
+                row.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>

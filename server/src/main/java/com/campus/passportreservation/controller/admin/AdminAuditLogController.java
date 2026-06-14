@@ -5,6 +5,7 @@ import com.campus.passportreservation.common.PageResponse;
 import com.campus.passportreservation.config.OpenApiConfig;
 import com.campus.passportreservation.dto.AuditDtos.AuditLogQuery;
 import com.campus.passportreservation.dto.AuditDtos.AuditLogResponse;
+import com.campus.passportreservation.dto.AuditDtos.AuditLogSummaryResponse;
 import com.campus.passportreservation.service.AuditLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +31,12 @@ public class AdminAuditLogController {
     @Operation(summary = "查询审计日志")
     public ApiResponse<PageResponse<AuditLogResponse>> list(@ModelAttribute AuditLogQuery query) {
         return ApiResponse.ok(auditLogService.query(query));
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "查询审计日志摘要")
+    public ApiResponse<AuditLogSummaryResponse> summary() {
+        return ApiResponse.ok(auditLogService.summary());
     }
 
     @GetMapping("/{id}")

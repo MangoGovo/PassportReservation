@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.passportreservation.common.PageResponse;
 import com.campus.passportreservation.dto.AuditDtos.AuditLogQuery;
 import com.campus.passportreservation.dto.AuditDtos.AuditLogResponse;
+import com.campus.passportreservation.dto.AuditDtos.AuditLogSummaryResponse;
 import com.campus.passportreservation.entity.AuditLog;
 import com.campus.passportreservation.entity.SysAdmin;
 import com.campus.passportreservation.mapper.AuditLogMapper;
@@ -19,7 +20,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +78,24 @@ public class AuditLogService {
 
     public AuditLogResponse detail(Long id) {
         return toResponse(auditLogMapper.selectById(id));
+    }
+
+    public AuditLogSummaryResponse summary() {
+        LocalDateTime start = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        List<AuditLog> today = auditLogMapper.selectList(new LambdaQueryWrapper<AuditLog>()
+                .ge(AuditLog::getOperationTime, start)
+                .lt(AuditLog::getOperationTime, end));
+        long activeAdminCount = today.stream()
+                .map(log -> log.getOperatorId() == null ? log.getOperatorName() : String.valueOf(log.getOperatorId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+                .size();
+        long warningCount = today.stream()
+                .filter(log -> !"SUCCESS".equalsIgnoreCase(log.getResult()))
+                .count();
+        double warningRate = Math.round((warningCount / 86400.0) * 10000.0) / 10000.0;
+        return new AuditLogSummaryResponse(activeAdminCount, today.size(), warningCount, warningRate);
     }
 
     private AuditLogResponse toResponse(AuditLog log) {

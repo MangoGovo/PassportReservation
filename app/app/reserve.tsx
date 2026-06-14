@@ -11,7 +11,7 @@ import { TextField } from '@/src/components/text-field';
 import { TopBar } from '@/src/components/top-bar';
 import { VisitTimePicker } from '@/src/components/visit-time-picker';
 import { campusOptions, departmentOptions, transportOptions } from '@/src/data/options';
-import { createReservation } from '@/src/services/api';
+import { createReservation, isAuthExpiredError } from '@/src/services/api';
 import { colors, commonStyles, spacing, typography } from '@/src/theme';
 import type { ReservationType } from '@/src/types';
 
@@ -77,6 +77,16 @@ export default function ReserveScreen() {
         router.replace('/reservations');
       }
     } catch (error) {
+      if (isAuthExpiredError(error)) {
+        Alert.alert('登录已过期', '请重新登录后再提交预约。', [
+          {
+            text: '重新登录',
+            onPress: () => router.replace({ pathname: '/login', params: { redirect: '/reserve' } }),
+          },
+          { text: '取消', style: 'cancel' },
+        ]);
+        return;
+      }
       Alert.alert('提交失败', error instanceof Error ? error.message : '请检查预约信息');
     } finally {
       setLoading(false);

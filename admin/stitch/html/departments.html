@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>部门管理 - 校园通行管理系统</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdeaa",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "tertiary": "#2d1d00",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "outline": "#74777f",
+                        "tertiary-fixed-dim": "#f8bc4b",
+                        "outline-variant": "#c4c6cf",
+                        "secondary-container": "#9ff5c1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#002111",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "primary": "#002045",
+                        "secondary-fixed": "#9ff5c1",
+                        "inverse-surface": "#2f3033",
+                        "secondary": "#0a6c44",
+                        "on-surface-variant": "#43474e",
+                        "surface": "#faf9fd",
+                        "tertiary-container": "#493100",
+                        "surface-container-highest": "#e3e2e6",
+                        "background": "#faf9fd",
+                        "on-tertiary-container": "#cb9524",
+                        "surface-container": "#efedf1",
+                        "surface-variant": "#e3e2e6",
+                        "primary-container": "#1a365d",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc7f7",
+                        "on-secondary-fixed-variant": "#005231",
+                        "surface-container-low": "#f4f3f7",
+                        "on-background": "#1a1c1e",
+                        "inverse-primary": "#adc7f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf9fd",
+                        "secondary-fixed-dim": "#83d8a6",
+                        "surface-dim": "#dad9dd",
+                        "surface-tint": "#455f88",
+                        "on-secondary-container": "#167249",
+                        "on-tertiary-fixed": "#271900",
+                        "on-surface": "#1a1c1e",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#86a0cd",
+                        "primary-fixed": "#d6e3ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e9e7eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "1.5rem",
+                        "container-padding": "1rem",
+                        "component-height-md": "3rem",
+                        "stack-gap": "0.75rem",
+                        "inline-padding": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Work Sans"],
+                        "body-lg": ["Work Sans"],
+                        "code-display": ["Work Sans"],
+                        "label-bold": ["Work Sans"],
+                        "headline-md": ["Work Sans"],
+                        "headline-lg": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "code-display": ["48px", {"lineHeight": "56px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Work Sans', sans-serif; background-color: #faf9fd; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-sidebar { backdrop-filter: blur(8px); background-color: rgba(255, 255, 255, 0.8); }
+        .status-chip { @apply px-3 py-1 rounded-full text-label-bold font-label-bold inline-flex items-center gap-1; }
+    </style>
+</head>
+<body class="text-on-surface">
+<div class="flex min-h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="hidden md:flex w-64 flex-col glass-sidebar border-r border-outline-variant z-40">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<h1 class="text-headline-md font-headline-md text-primary tracking-tight">校园通行</h1>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-body-md font-body-md">管理概览</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container text-on-primary-container font-label-bold shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="text-body-md">部门管理</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span class="text-body-md font-body-md">人员审核</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-body-md font-body-md">数据报表</span>
+</a>
+<div class="pt-4 pb-2 px-4">
+<span class="text-[10px] uppercase font-bold text-outline tracking-widest">系统设置</span>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-body-md font-body-md">权限配置</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="bg-surface-container rounded-2xl p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-body-md font-headline-md truncate">管理员 01</p>
+<p class="text-label-bold text-on-surface-variant truncate">超级管理员</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- Header -->
+<header class="h-16 bg-surface flex items-center justify-between px-6 border-b border-outline-variant sticky top-0 z-30">
+<div class="flex items-center gap-4">
+<button class="md:hidden p-2 hover:bg-surface-container rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-headline-md font-headline-md text-on-surface">部门管理</h2>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-primary text-on-primary px-5 h-10 rounded-full hover:shadow-lg transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="text-label-bold">Add New Department</span>
+</button>
+</div>
+</header>
+<!-- Table Section -->
+<div class="p-6 flex-1 overflow-auto">
+<!-- Bento Stats (Subtle) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex items-center gap-4">
+<div class="w-12 h-12 bg-primary-fixed rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">domain</span>
+</div>
+<div>
+<p class="text-label-bold text-on-surface-variant">总部门数</p>
+<p class="text-headline-lg font-headline-lg">24</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex items-center gap-4">
+<div class="w-12 h-12 bg-secondary-fixed rounded-xl flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<p class="text-label-bold text-on-surface-variant">学术单位</p>
+<p class="text-headline-lg font-headline-lg">16</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex items-center gap-4">
+<div class="w-12 h-12 bg-tertiary-fixed rounded-xl flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+</div>
+<div>
+<p class="text-label-bold text-on-surface-variant">行政单位</p>
+<p class="text-headline-lg font-headline-lg">8</p>
+</div>
+</div>
+</div>
+<!-- Main Data Table Card -->
+<div class="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container rounded-full border-none focus:ring-2 focus:ring-primary text-body-md" placeholder="搜索部门名称或ID..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-6 py-4 text-label-bold text-on-surface-variant border-b border-outline-variant">Dept ID</th>
+<th class="px-6 py-4 text-label-bold text-on-surface-variant border-b border-outline-variant">Type</th>
+<th class="px-6 py-4 text-label-bold text-on-surface-variant border-b border-outline-variant">Dept Name</th>
+<th class="px-6 py-4 text-label-bold text-on-surface-variant border-b border-outline-variant">Status</th>
+<th class="px-6 py-4 text-label-bold text-on-surface-variant border-b border-outline-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<span class="text-body-md font-mono text-primary bg-primary-fixed/20 px-2 py-0.5 rounded">001</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-body-md">Administrative</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-headline-md">Information Center</span>
+</td>
+<td class="px-6 py-4">
+<div class="status-chip bg-secondary-container/30 text-on-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg" title="Edit">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg" title="Deactivate">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<span class="text-body-md font-mono text-primary bg-primary-fixed/20 px-2 py-0.5 rounded">002</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-body-md">Academic</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-headline-md">School of Computer Science</span>
+</td>
+<td class="px-6 py-4">
+<div class="status-chip bg-secondary-container/30 text-on-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<span class="text-body-md font-mono text-primary bg-primary-fixed/20 px-2 py-0.5 rounded">003</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-body-md">Academic</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-headline-md">School of Life Sciences</span>
+</td>
+<td class="px-6 py-4">
+<div class="status-chip bg-secondary-container/30 text-on-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                            Active
+                                        </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-error hover:bg-error/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 (Inactive Example) -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<span class="text-body-md font-mono text-primary bg-primary-fixed/20 px-2 py-0.5 rounded">004</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-body-md">Administrative</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-md font-headline-md">Campus Logistics Office</span>
+</td>
+<td class="px-6 py-4">
+<div class="status-chip bg-surface-container-highest text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                                            Inactive
+                                        </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-2 text-secondary hover:bg-secondary/10 rounded-lg" title="Activate">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-low/30">
+<p class="text-body-md text-on-surface-variant">显示 1-4 / 共 24 条记录</p>
+<div class="flex items-center gap-1">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg text-label-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded-lg text-label-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded-lg text-label-bold">3</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer (from JSON structure) -->
+<footer class="flex flex-col items-center gap-2 mb-20 w-full py-section-margin bg-transparent">
+<div class="flex gap-4">
+<a class="text-on-surface-variant hover:text-primary transition-colors text-body-md font-body-md" href="#">隐私政策</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-body-md font-body-md" href="#">使用指南</a>
+</div>
+<p class="text-on-surface-variant text-body-md font-body-md text-center px-4">
+                    © 2024 校园通行管理系统 | 某某大学信息化中心
+                </p>
+</footer>
+</main>
+</div>
+<!-- Floating Action Button (Mobile Only context) -->
+<button class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-xl flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined">add</span>
+</button>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', (e) => {
+                // Ignore if clicked on button
+                if (e.target.closest('button')) return;
+                
+                // Toggle active style
+                document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('bg-surface-container-high'));
+                row.classList.add('bg-surface-container-high');
+            });
+        });
+    </script>
+</body></html>

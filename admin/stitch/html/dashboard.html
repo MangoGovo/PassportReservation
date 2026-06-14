@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>校园通行码预约管理系统 - 管理后台</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdeaa",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "tertiary": "#2d1d00",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "outline": "#74777f",
+                        "tertiary-fixed-dim": "#f8bc4b",
+                        "outline-variant": "#c4c6cf",
+                        "secondary-container": "#9ff5c1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#002111",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "primary": "#002045",
+                        "secondary-fixed": "#9ff5c1",
+                        "inverse-surface": "#2f3033",
+                        "secondary": "#0a6c44",
+                        "on-surface-variant": "#43474e",
+                        "surface": "#faf9fd",
+                        "tertiary-container": "#493100",
+                        "surface-container-highest": "#e3e2e6",
+                        "background": "#faf9fd",
+                        "on-tertiary-container": "#cb9524",
+                        "surface-container": "#efedf1",
+                        "surface-variant": "#e3e2e6",
+                        "primary-container": "#1a365d",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc7f7",
+                        "on-secondary-fixed-variant": "#005231",
+                        "surface-container-low": "#f4f3f7",
+                        "on-background": "#1a1c1e",
+                        "inverse-primary": "#adc7f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf9fd",
+                        "secondary-fixed-dim": "#83d8a6",
+                        "surface-dim": "#dad9dd",
+                        "surface-tint": "#455f88",
+                        "on-secondary-container": "#167249",
+                        "on-tertiary-fixed": "#271900",
+                        "on-surface": "#1a1c1e",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#86a0cd",
+                        "primary-fixed": "#d6e3ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e9e7eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "1.5rem",
+                        "container-padding": "1rem",
+                        "component-height-md": "3rem",
+                        "stack-gap": "0.75rem",
+                        "inline-padding": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Work Sans"],
+                        "body-lg": ["Work Sans"],
+                        "code-display": ["Work Sans"],
+                        "label-bold": ["Work Sans"],
+                        "headline-md": ["Work Sans"],
+                        "headline-lg": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "code-display": ["48px", {"lineHeight": "56px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-bold": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: #faf9fd;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            background-color: #1a365d !important;
+            color: #86a0cd !important;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="hidden md:flex flex-col w-64 bg-surface dark:bg-inverse-surface border-r border-outline-variant">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div class="text-primary font-headline-md text-headline-md tracking-tight">管理后台</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 py-4">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container text-on-primary-container font-label-bold text-label-bold transition-all active:opacity-70" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all active:opacity-70 font-label-bold text-label-bold" href="#">
+<span class="material-symbols-outlined">shield_person</span>
+<span>Admin</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all active:opacity-70 font-label-bold text-label-bold" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span>Department</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all active:opacity-70 font-label-bold text-label-bold" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span>Public Reservations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all active:opacity-70 font-label-bold text-label-bold" href="#">
+<span class="material-symbols-outlined">business_center</span>
+<span>Official Reservations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all active:opacity-70 font-label-bold text-label-bold" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span>Audit Logs</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center overflow-hidden">
+<img alt="Admin" class="w-full h-full object-cover" data-alt="A professional headshot of a university administrator in a modern office setting. The person is wearing a business casual outfit, looking friendly and authoritative. The background features a clean, minimalist university administration office with soft, natural lighting that complements the academic blue theme of the system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaQz80otXiBAebd5vp8TMbQ8kW3crPefndptG00PFFPWg54gQU4CfVsWVB_7iXNZ43_sGXBD5Usydgpp8YHVfwxZKVdz85GGXOyrzcbNokoCwypfhJYCp27-WcH__GPAtKaaFpQzAs0tcgLjS4hP9BtFfRJRNal0Us5peKBV-50IexSlA0O53zCKEaWvVvXlfPMQpWQrp4tgxocpXX412lxtOWHo4VyoEtfVXyTwT0fYZoajVij11XpLfLvLgGtUePfnY-v8X98BM"/>
+</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md text-on-surface">系统管理员</p>
+<p class="text-label-bold font-label-bold text-on-surface-variant">Admin</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- Top Header -->
+<header class="h-16 flex items-center justify-between px-8 bg-surface border-b border-outline-variant z-10">
+<h1 class="text-headline-md font-headline-md text-primary">校园通行码预约管理系统 - 管理后台</h1>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<span class="text-body-md font-body-md text-on-surface-variant" id="current-time">2024年10月24日 星期四</span>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Statistic Cards Grid (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-primary hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-fixed rounded-lg text-primary">
+<span class="material-symbols-outlined">today</span>
+</div>
+<span class="text-secondary font-label-bold text-label-bold">+12%</span>
+</div>
+<div class="text-on-surface-variant text-label-bold font-label-bold mb-1">Today's Reservations</div>
+<div class="text-headline-lg font-headline-lg text-on-surface">1,240</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-error hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-error-container rounded-lg text-on-error-container">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<span class="text-error font-label-bold text-label-bold">High Priority</span>
+</div>
+<div class="text-on-surface-variant text-label-bold font-label-bold mb-1">Pending Approvals</div>
+<div class="text-headline-lg font-headline-lg text-on-surface">15</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-secondary hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container rounded-lg text-on-secondary-container">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-secondary font-label-bold text-label-bold">Target: 15k</span>
+</div>
+<div class="text-on-surface-variant text-label-bold font-label-bold mb-1">Total Visitors This Month</div>
+<div class="text-headline-lg font-headline-lg text-on-surface">12,500</div>
+</div>
+<!-- Card 4 -->
+<div class="glass-card p-6 rounded-2xl shadow-sm border-l-4 border-tertiary-container hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-fixed rounded-lg text-on-tertiary-fixed">
+<span class="material-symbols-outlined">apartment</span>
+</div>
+<span class="text-on-surface-variant font-label-bold text-label-bold">Full Coverage</span>
+</div>
+<div class="text-on-surface-variant text-label-bold font-label-bold mb-1">Active Departments</div>
+<div class="text-headline-lg font-headline-lg text-on-surface">24</div>
+</div>
+</section>
+<!-- Table Section (Asymmetric Layout) -->
+<section class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+<!-- Recent Official Reservation Requests Table (2/3 width) -->
+<div class="xl:col-span-2 glass-card rounded-2xl shadow-sm overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<h2 class="text-headline-md font-headline-md text-primary">Recent Official Reservation Requests</h2>
+<button class="text-primary text-body-md font-body-md hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-high text-on-surface-variant font-label-bold text-label-bold">
+<tr>
+<th class="px-6 py-4">Applicant</th>
+<th class="px-6 py-4">Department</th>
+<th class="px-6 py-4">Visit Date</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary text-xs">LZ</div>
+<span class="font-body-md text-body-md">Li Zhang</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md">School of Computing</td>
+<td class="px-6 py-4 font-body-md text-body-md">Oct 26, 2024</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-fixed text-on-tertiary-fixed-variant">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container transition-colors p-1"><span class="material-symbols-outlined">edit</span></button>
+<button class="text-error hover:opacity-70 transition-colors p-1"><span class="material-symbols-outlined">check_circle</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary text-xs">WW</div>
+<span class="font-body-md text-body-md">Wang Wei</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md">Public Relations</td>
+<td class="px-6 py-4 font-body-md text-body-md">Oct 27, 2024</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-fixed text-on-tertiary-fixed-variant">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container transition-colors p-1"><span class="material-symbols-outlined">edit</span></button>
+<button class="text-error hover:opacity-70 transition-colors p-1"><span class="material-symbols-outlined">check_circle</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed-dim flex items-center justify-center text-primary text-xs">CH</div>
+<span class="font-body-md text-body-md">Chen Hao</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md">Dept of Physics</td>
+<td class="px-6 py-4 font-body-md text-body-md">Oct 28, 2024</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-fixed text-on-tertiary-fixed-variant">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container transition-colors p-1"><span class="material-symbols-outlined">edit</span></button>
+<button class="text-error hover:opacity-70 transition-colors p-1"><span class="material-symbols-outlined">check_circle</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary text-xs">XM</div>
+<span class="font-body-md text-body-md">Xu Mei</span>
+</div>
+</td>
+<td class="px-6 py-4 font-body-md text-body-md">Admin Office</td>
+<td class="px-6 py-4 font-body-md text-body-md">Oct 30, 2024</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-fixed text-on-tertiary-fixed-variant">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container transition-colors p-1"><span class="material-symbols-outlined">edit</span></button>
+<button class="text-error hover:opacity-70 transition-colors p-1"><span class="material-symbols-outlined">check_circle</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Visitor Trend Chart Area (1/3 width) -->
+<div class="glass-card rounded-2xl shadow-sm p-6 flex flex-col">
+<h2 class="text-headline-md font-headline-md text-primary mb-6">Traffic Insights</h2>
+<div class="flex-1 relative bg-surface-container-low rounded-xl border border-dashed border-outline-variant flex items-center justify-center">
+<!-- Placeholder for chart -->
+<div class="text-center p-4">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">insights</span>
+<p class="text-body-md font-body-md text-on-surface-variant">Visitor Trend analysis showing growth in official campus visits over the last 30 days.</p>
+</div>
+</div>
+<div class="mt-6 space-y-4">
+<div class="flex items-center justify-between text-body-md font-body-md">
+<span class="text-on-surface-variant">Peak Hours</span>
+<span class="text-on-surface font-semibold">10:00 - 11:30</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+<div class="flex items-center justify-between text-body-md font-body-md">
+<span class="text-on-surface-variant">Gate Congestion</span>
+<span class="text-secondary font-semibold">Normal</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="p-6 text-center border-t border-outline-variant bg-surface">
+<p class="text-body-md font-body-md text-on-surface-variant">© 2024 校园通行管理系统 | 某某大学信息化中心</p>
+<div class="flex justify-center gap-4 mt-2">
+<a class="text-primary hover:underline font-body-md text-body-md" href="#">隐私政策</a>
+<a class="text-primary hover:underline font-body-md text-body-md" href="#">使用指南</a>
+</div>
+</footer>
+</main>
+<script>
+        // Update Time script
+        function updateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('zh-CN', options);
+        }
+        setInterval(updateTime, 60000);
+        updateTime();
+
+        // Simple row hover effect enhancement
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.classList.add('shadow-inner');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.classList.remove('shadow-inner');
+            });
+        });
+    </script>
+</body></html>

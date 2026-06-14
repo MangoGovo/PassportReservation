@@ -86,6 +86,8 @@ public final class AuthDtos {
             @Schema(description = "脱敏手机号", example = "138****8000") String phone,
             @Schema(description = "账号状态", example = "NORMAL") String accountStatus,
             @Schema(description = "授权范围", example = "ALL") String authScope,
+            @Schema(description = "角色 ID 列表", example = "[1,3]") List<Long> roleIds,
+            @Schema(description = "角色编码列表", example = "[\"SCHOOL_ADMIN\"]") List<String> roleCodes,
             @Schema(description = "密码更新时间") LocalDateTime passwordUpdatedAt
     ) {
     }
@@ -99,6 +101,38 @@ public final class AuthDtos {
             @Schema(description = "手机号", example = "13800138000") String phone,
             @Schema(description = "角色 ID 列表", example = "[2]") List<Long> roleIds,
             @Schema(description = "授权范围", example = "ALL_OFFICIAL") String authScope
+    ) {
+    }
+
+    @Schema(name = "AdminUpdateRequest", description = "修改管理员请求")
+    public record AdminUpdateRequest(
+            @Schema(description = "真实姓名", example = "李老师") @NotBlank String realName,
+            @Schema(description = "登录名", example = "dept_admin") @NotBlank String loginName,
+            @Schema(description = "部门 ID", example = "2") Long deptId,
+            @Schema(description = "手机号", example = "13800138000") String phone,
+            @Schema(description = "角色 ID 列表", example = "[2]") List<Long> roleIds,
+            @Schema(description = "授权范围", example = "ALL_OFFICIAL") String authScope,
+            @Schema(description = "账号状态", example = "NORMAL") String accountStatus
+    ) {
+    }
+
+    @Schema(name = "AdminPasswordResetRequest", description = "重置管理员密码请求")
+    public record AdminPasswordResetRequest(
+            @Schema(description = "新密码，至少 8 位且包含数字、大小写字母和特殊字符", example = "Admin456!") @NotBlank String newPassword
+    ) {
+    }
+
+    @Schema(name = "AdminStatusRequest", description = "管理员状态修改请求")
+    public record AdminStatusRequest(
+            @Schema(description = "账号状态：NORMAL/DISABLED/LOCKED", example = "DISABLED") @NotBlank String accountStatus
+    ) {
+    }
+
+    @Schema(name = "RoleOption", description = "后台角色选项")
+    public record RoleOption(
+            @Schema(description = "角色 ID", example = "1") Long id,
+            @Schema(description = "角色编码", example = "SCHOOL_ADMIN") String roleCode,
+            @Schema(description = "角色名称", example = "学校管理员") String roleName
     ) {
     }
 
