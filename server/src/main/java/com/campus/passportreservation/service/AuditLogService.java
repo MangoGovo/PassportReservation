@@ -15,7 +15,10 @@ import com.campus.passportreservation.security.StpInterfaceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuditLogService {
 
     private final AuditLogMapper auditLogMapper;
@@ -35,6 +39,7 @@ public class AuditLogService {
     private final CryptoService cryptoService;
     private final ObjectMapper objectMapper;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(String operationType, String targetType, Object targetId, String result, Object detail) {
         try {
             AuditLog log = new AuditLog();
@@ -57,8 +62,9 @@ public class AuditLogService {
             log.setDetailJson(detailJson);
             log.setHmacValue(cryptoService.hmac(log.getOperationType() + "|" + log.getTargetType() + "|" + log.getTargetId() + "|" + detailJson));
             auditLogMapper.insert(log);
-        } catch (Exception ignored) {
-            // 审计失败不能阻断主业务，但生产环境应接入日志告警。
+        } catch (Exception ex) {
+            log.warn("Failed to record audit log: operationType={}, targetType={}, targetId={}, result={}",
+                    operationType, targetType, targetId, result, ex);
         }
     }
 

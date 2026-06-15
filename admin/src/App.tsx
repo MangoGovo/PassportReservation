@@ -312,15 +312,28 @@ function ListViewport({
   )
 }
 
-const navItems: { path: RouteKey; label: string; icon: string }[] = [
+const navItems: { path: RouteKey; label: string; icon: string; permission?: string }[] = [
   { path: '/', label: '管理概览', icon: 'dashboard' },
-  { path: '/admins', label: '管理员管理', icon: 'admin_panel_settings' },
-  { path: '/departments', label: '部门管理', icon: 'corporate_fare' },
-  { path: '/public-reservations', label: '社会公众预约', icon: 'event_available' },
-  { path: '/official-reservations', label: '公务预约管理', icon: 'verified_user' },
-  { path: '/official-statistics', label: '公务预约统计', icon: 'analytics' },
-  { path: '/audit-logs', label: '审计日志', icon: 'history_edu' },
+  { path: '/admins', label: '管理员管理', icon: 'admin_panel_settings', permission: 'admin:manage' },
+  { path: '/departments', label: '部门管理', icon: 'corporate_fare', permission: 'dept:manage' },
+  { path: '/public-reservations', label: '社会公众预约', icon: 'event_available', permission: 'public:query' },
+  { path: '/official-reservations', label: '公务预约管理', icon: 'verified_user', permission: 'official:query' },
+  { path: '/official-statistics', label: '公务预约统计', icon: 'analytics', permission: 'official:query' },
+  { path: '/audit-logs', label: '审计日志', icon: 'history_edu', permission: 'audit:query' },
 ]
+
+function visibleNavItems(session?: LoginResponse | null) {
+  const permissions = new Set(session?.permissions ?? [])
+  return navItems.filter((item) => !item.permission || permissions.has(item.permission))
+}
+
+function canAccessRoute(path: RouteKey, session?: LoginResponse | null) {
+  return visibleNavItems(session).some((item) => item.path === path)
+}
+
+function fallbackRoute(session?: LoginResponse | null) {
+  return visibleNavItems(session)[0]?.path ?? '/'
+}
 
 function App() {
   const [route, setRoute] = useState<RouteKey>(() => normalizeRoute(location.pathname))
@@ -343,9 +356,23 @@ function App() {
       .then((status) => {
         if (!status.login) logout()
       })
-      .catch(() => logout())
+      .catch((error) => {
+        if (error instanceof ApiError && error.code === 401) {
+          logout()
+        } else {
+          setToast(error instanceof Error ? error.message : '登录状态校验失败')
+        }
+      })
       .finally(() => setChecking(false))
   }, [])
+
+  useEffect(() => {
+    if (!session || canAccessRoute(route, session)) return
+    const next = fallbackRoute(session)
+    history.replaceState(null, '', next)
+    setRoute(next)
+    setToast('当前账号无权访问该页面，已切换到可访问菜单')
+  }, [route, session])
 
   function navigate(path: RouteKey) {
     history.pushState(null, '', path)
@@ -385,15 +412,17 @@ function App() {
     )
   }
 
+  const currentRoute = canAccessRoute(route, session) ? route : fallbackRoute(session)
+
   return (
-    <Shell route={route} session={session} navigate={navigate} logout={logout} toast={toast} clearToast={() => setToast(undefined)}>
-      {route === '/' && <DashboardPage onError={handleError} navigate={navigate} />}
-      {route === '/admins' && <AdminsPage onError={handleError} />}
-      {route === '/departments' && <DepartmentsPage onError={handleError} />}
-      {route === '/public-reservations' && <ReservationsPage type="public" onError={handleError} />}
-      {route === '/official-reservations' && <ReservationsPage type="official" onError={handleError} />}
-      {route === '/official-statistics' && <StatisticsPage onError={handleError} />}
-      {route === '/audit-logs' && <AuditLogsPage onError={handleError} />}
+    <Shell route={currentRoute} session={session} navigate={navigate} logout={logout} toast={toast} clearToast={() => setToast(undefined)}>
+      {currentRoute === '/' && <DashboardPage onError={handleError} navigate={navigate} />}
+      {currentRoute === '/admins' && <AdminsPage onError={handleError} />}
+      {currentRoute === '/departments' && <DepartmentsPage onError={handleError} />}
+      {currentRoute === '/public-reservations' && <ReservationsPage type="public" onError={handleError} />}
+      {currentRoute === '/official-reservations' && <ReservationsPage type="official" onError={handleError} />}
+      {currentRoute === '/official-statistics' && <StatisticsPage onError={handleError} />}
+      {currentRoute === '/audit-logs' && <AuditLogsPage onError={handleError} />}
     </Shell>
   )
 }
@@ -408,7 +437,7 @@ function Icon({ name }: { name: string }) {
 
 function LoginPage({ onLogin }: { onLogin: (value: LoginResponse) => void }) {
   const [loginName, setLoginName] = useState('admin')
-  const [password, setPassword] = useState('Admin123!')
+  const [password, setPassword] = useState('')
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
@@ -492,7 +521,8 @@ function Shell({
   clearToast: () => void
   children: ReactNode
 }) {
-  const active = navItems.find((item) => item.path === route) ?? navItems[0]
+  const items = visibleNavItems(session)
+  const active = items.find((item) => item.path === route) ?? items[0] ?? navItems[0]
   return (
     <div className="admin-shell">
       <aside className="sidebar">
@@ -504,7 +534,7 @@ function Shell({
           </div>
         </div>
         <nav>
-          {navItems.map((item) => (
+          {items.map((item) => (
             <button className={item.path === route ? 'active' : ''} key={item.path} onClick={() => navigate(item.path)}>
               <Icon name={item.icon} />
               <span>{item.label}</span>
@@ -533,12 +563,23 @@ function Shell({
         </header>
         <div className="page">{children}</div>
       </section>
-      {toast && (
-        <button className="toast" onClick={clearToast}>
-          {toast}
-        </button>
-      )}
+      {toast && <ErrorPopover message={toast} onClose={clearToast} />}
     </div>
+  )
+}
+
+function ErrorPopover({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <aside className="error-popover" role="alert" aria-live="assertive">
+      <span className="error-popover-icon"><Icon name="error" /></span>
+      <div>
+        <strong>操作失败</strong>
+        <p>{message}</p>
+      </div>
+      <button className="error-popover-close" type="button" aria-label="关闭错误提示" onClick={onClose}>
+        <Icon name="close" />
+      </button>
+    </aside>
   )
 }
 
@@ -622,8 +663,8 @@ function DashboardPage({ onError, navigate }: { onError: (error: unknown) => voi
       <section className="metrics-grid">
         <MetricCard icon="today" label="今日预约" value={data.todayReservations} hint="Today's Reservations" />
         <MetricCard icon="pending_actions" label="待审核" value={data.pendingApprovals} hint="High Priority" />
-        <MetricCard icon="groups" label="本月预约人次" value={data.monthVisitors} hint={`高峰 ${data.peakHour}`} />
-        <MetricCard icon="apartment" label="启用部门" value={data.activeDepartments} hint={`Gate ${data.gateCongestion}`} />
+        <MetricCard icon="groups" label="本月预约人次" value={data.monthVisitors} />
+        <MetricCard icon="apartment" label="启用部门" value={data.activeDepartments} />
       </section>
 
       <section className="two-column">
@@ -652,14 +693,6 @@ function DashboardPage({ onError, navigate }: { onError: (error: unknown) => voi
                 <small>{item.date.slice(5)}</small>
               </div>
             ))}
-          </div>
-          <div className="insight-line">
-            <span>Peak Hours</span>
-            <strong>{data.peakHour}</strong>
-          </div>
-          <div className="insight-line">
-            <span>Gate Congestion</span>
-            <strong>{data.gateCongestion}</strong>
           </div>
         </div>
       </section>
@@ -924,15 +957,23 @@ function AdminsPage({ onError }: { onError: (error: unknown) => void }) {
       {editing && (
         <Modal title={editing.id ? '编辑管理员' : '新增管理员'} onClose={() => setEditing(null)}>
           <form className="modal-form" onSubmit={saveAdmin}>
-            <label>姓名<input name="realName" defaultValue={editing.realName} required /></label>
+            <label>真实姓名<input name="realName" defaultValue={editing.realName} required /></label>
             <label>登录名<input name="loginName" defaultValue={editing.loginName} required /></label>
-            {!editing.id && <label>初始密码<input name="password" defaultValue="Admin123!" required type="password" /></label>}
+            {!editing.id && <label>初始密码<input name="password" defaultValue="" required type="password" /></label>}
             <label>联系电话<input name="phone" defaultValue={editing.phone?.replace(/\*/g, '')} /></label>
             <label>所在部门<select name="deptId" defaultValue={editing.deptId}><option value="">未选择</option>{departments.map((dept) => <option key={dept.id} value={dept.id}>{dept.deptName}</option>)}</select></label>
             <label>授权范围<select name="authScope" defaultValue={editing.authScope || 'ALL'}><option value="ALL">全部权限</option><option value="ALL_OFFICIAL">全部公务预约</option><option value="DEPT_ONLY">本部门</option></select></label>
             <label>账号状态<select name="accountStatus" defaultValue={editing.accountStatus || 'NORMAL'}><option value="NORMAL">正常</option><option value="DISABLED">禁用</option><option value="LOCKED">锁定</option></select></label>
-            <div className="check-grid">
-              {roles.map((role) => <label key={role.id}><input name="roleIds" type="checkbox" value={role.id} defaultChecked={editing.roleIds?.includes(role.id)} />{role.roleName}</label>)}
+            <div className="check-field">
+              <span className="field-label">角色</span>
+              <div className="check-grid">
+                {roles.map((role) => (
+                  <label className="check-option" key={role.id}>
+                    <input name="roleIds" type="checkbox" value={role.id} defaultChecked={editing.roleIds?.includes(role.id)} />
+                    <span>{role.roleName}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="modal-actions"><button className="secondary" type="button" onClick={() => setEditing(null)}>取消</button><button className="primary" type="submit">保存</button></div>
           </form>
