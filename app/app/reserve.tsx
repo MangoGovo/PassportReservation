@@ -1,6 +1,6 @@
 import { PlusCircle, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,8 +10,9 @@ import { SelectField } from '@/src/components/select-field';
 import { TextField } from '@/src/components/text-field';
 import { TopBar } from '@/src/components/top-bar';
 import { VisitTimePicker } from '@/src/components/visit-time-picker';
-import { campusOptions, departmentOptions, transportOptions } from '@/src/data/options';
-import { createReservation, isAuthExpiredError } from '@/src/services/api';
+import { campusOptions, transportOptions } from '@/src/data/options';
+import { createReservation, isAuthExpiredError, listDepartmentOptions } from '@/src/services/api';
+import type { DepartmentOption } from '@/src/services/api';
 import { colors, commonStyles, spacing, typography } from '@/src/theme';
 import type { ReservationType } from '@/src/types';
 
@@ -39,6 +40,41 @@ export default function ReserveScreen() {
   const [plateNo, setPlateNo] = useState('');
   const [companions, setCompanions] = useState<Companion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([]);
+  const [departmentsLoaded, setDepartmentsLoaded] = useState(false);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [departmentsError, setDepartmentsError] = useState('');
+
+  const visitDeptOptions = useMemo(
+    () => [
+      { label: departmentsLoading ? '部门加载中...' : '请选择访问部门', value: '' },
+      ...departmentOptions,
+    ],
+    [departmentOptions, departmentsLoading],
+  );
+
+  const loadDepartments = useCallback(async () => {
+    setDepartmentsLoading(true);
+    setDepartmentsError('');
+    try {
+      const options = await listDepartmentOptions();
+      setDepartmentOptions(options);
+      setDepartmentsLoaded(true);
+      if (department && !options.some((option) => option.value === department)) {
+        setDepartment('');
+      }
+    } catch (error) {
+      setDepartmentsError(error instanceof Error ? error.message : '访问部门加载失败');
+    } finally {
+      setDepartmentsLoading(false);
+    }
+  }, [department]);
+
+  useEffect(() => {
+    if (reservationType === 'official' && !departmentsLoaded && !departmentsLoading && !departmentsError) {
+      loadDepartments();
+    }
+  }, [departmentsError, departmentsLoaded, departmentsLoading, loadDepartments, reservationType]);
 
   const addCompanion = () => {
     setCompanions((items) => [...items, { id: Date.now(), name: '', idCard: '', mobile: '' }]);
@@ -121,7 +157,7 @@ export default function ReserveScreen() {
         <Card style={{ gap: spacing.md }}>
           <SelectField label="预约校区" required value={campus} onChange={setCampus} options={campusOptions} />
           <VisitTimePicker
-            label="预约进校时间"
+            label="预约进校日期"
             required
             value={visitTime}
             onChange={setVisitTime}
@@ -149,8 +185,25 @@ export default function ReserveScreen() {
               required
               value={department}
               onChange={setDepartment}
-              options={departmentOptions}
+              options={visitDeptOptions}
             />
+            {departmentsError ? (
+              <View style={{ gap: spacing.sm }}>
+                <Text selectable style={{ ...typography.bodyMd, color: colors.error }}>
+                  {departmentsError}
+                </Text>
+                <Pressable onPress={loadDepartments} style={{ alignSelf: 'flex-start' }}>
+                  <Text selectable style={{ ...typography.labelBold, color: colors.primary }}>
+                    重新加载访问部门
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+            {!departmentsError && departmentsLoaded && !departmentOptions.length ? (
+              <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant }}>
+                暂无可选访问部门，请联系后台管理员创建并启用部门。
+              </Text>
+            ) : null}
             <TextField label="接待人" required value={host} onChangeText={setHost} placeholder="请输入校内接待人姓名" />
             <TextField
               label="来访事由"

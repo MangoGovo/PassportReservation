@@ -5,30 +5,6 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Card } from '@/src/components/card';
 import { colors, spacing, typography } from '@/src/theme';
 
-const timeSlots = [
-  '08:00',
-  '08:30',
-  '09:00',
-  '09:30',
-  '10:00',
-  '10:30',
-  '11:00',
-  '11:30',
-  '12:00',
-  '12:30',
-  '13:00',
-  '13:30',
-  '14:00',
-  '14:30',
-  '15:00',
-  '15:30',
-  '16:00',
-  '16:30',
-  '17:00',
-  '17:30',
-  '18:00',
-];
-
 export function VisitTimePicker({
   label,
   required,
@@ -42,29 +18,20 @@ export function VisitTimePicker({
 }) {
   const [open, setOpen] = useState(false);
   const dateOptions = useMemo(() => nextSevenDays(), []);
-  const fallbackDate = useMemo(
-    () => dateOptions.find((option) => availableSlots(option.value).length > 0)?.value ?? dateOptions[0]?.value ?? '',
-    [dateOptions],
-  );
+  const fallbackDate = useMemo(() => dateOptions[0]?.value ?? '', [dateOptions]);
   const [draftDate, setDraftDate] = useState(fallbackDate);
-  const [draftTime, setDraftTime] = useState(availableSlots(fallbackDate)[0] ?? '');
 
   const openPicker = () => {
     const nextDate = value ? value.slice(0, 10) : fallbackDate;
-    const nextSlots = availableSlots(nextDate);
-    const nextTime = value ? value.slice(11, 16) : nextSlots[0] ?? '';
     setDraftDate(nextDate);
-    setDraftTime(nextSlots.includes(nextTime) ? nextTime : nextSlots[0] ?? '');
     setOpen(true);
   };
 
-  const activeSlots = availableSlots(draftDate);
-
   const confirm = () => {
-    if (!draftDate || !draftTime) {
+    if (!draftDate) {
       return;
     }
-    onChange(`${draftDate}T${draftTime}:00`);
+    onChange(`${draftDate}T00:00:00`);
     setOpen(false);
   };
 
@@ -92,7 +59,7 @@ export function VisitTimePicker({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
           <Clock size={18} color={value ? colors.primary : colors.outline} />
           <Text selectable style={{ ...typography.bodyMd, color: value ? colors.onSurface : colors.outline }}>
-            {value ? formatSelected(value) : '请选择进校日期和时间'}
+            {value ? formatSelected(value) : '请选择进校日期'}
           </Text>
         </View>
         <ChevronDown size={20} color={colors.outline} />
@@ -115,24 +82,18 @@ export function VisitTimePicker({
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
               <CalendarDays size={20} color={colors.primary} />
               <Text selectable style={{ ...typography.bodyLgStrong, color: colors.onSurface }}>
-                选择预约进校时间
+                选择预约进校日期
               </Text>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {dateOptions.map((option) => {
-                  const disabled = availableSlots(option.value).length === 0;
                   const active = option.value === draftDate;
                   return (
                     <Pressable
                       key={option.value}
-                      disabled={disabled}
-                      onPress={() => {
-                        const slots = availableSlots(option.value);
-                        setDraftDate(option.value);
-                        setDraftTime(slots[0] ?? '');
-                      }}
+                      onPress={() => setDraftDate(option.value)}
                       style={{
                         width: 72,
                         minHeight: 64,
@@ -140,7 +101,6 @@ export function VisitTimePicker({
                         borderWidth: 1,
                         borderColor: active ? colors.primary : colors.outlineVariant,
                         backgroundColor: active ? colors.primaryFixed : colors.surfaceContainerLowest,
-                        opacity: disabled ? 0.42 : 1,
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 2,
@@ -158,38 +118,22 @@ export function VisitTimePicker({
               </View>
             </ScrollView>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              {activeSlots.map((slot) => {
-                const active = slot === draftTime;
-                return (
-                  <Pressable
-                    key={slot}
-                    onPress={() => setDraftTime(slot)}
-                    style={{
-                      width: '31%',
-                      minHeight: 42,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: active ? colors.primary : colors.outlineVariant,
-                      backgroundColor: active ? colors.primary : colors.surfaceContainerLowest,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexDirection: 'row',
-                      gap: 4,
-                    }}
-                  >
-                    {active ? <Check size={14} color={colors.onPrimary} /> : null}
-                    <Text selectable style={{ ...typography.bodyMdStrong, color: active ? colors.onPrimary : colors.onSurface }}>
-                      {slot}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-              {!activeSlots.length ? (
-                <Text selectable style={{ ...typography.bodyMd, color: colors.onSurfaceVariant }}>
-                  当天可预约时段已结束，请选择其他日期。
-                </Text>
-              ) : null}
+            <View
+              style={{
+                minHeight: 48,
+                borderRadius: 8,
+                backgroundColor: colors.primaryFixed,
+                paddingHorizontal: spacing.md,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.sm,
+              }}
+            >
+              <Check size={16} color={colors.primary} />
+              <Text selectable style={{ ...typography.bodyMdStrong, color: colors.primary }}>
+                全天可预约
+              </Text>
             </View>
 
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
@@ -210,14 +154,14 @@ export function VisitTimePicker({
                 </Text>
               </Pressable>
               <Pressable
-                disabled={!draftDate || !draftTime}
+                disabled={!draftDate}
                 onPress={confirm}
                 style={{
                   flex: 1,
                   minHeight: 44,
                   borderRadius: 8,
                   backgroundColor: colors.primary,
-                  opacity: !draftDate || !draftTime ? 0.42 : 1,
+                  opacity: !draftDate ? 0.42 : 1,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -247,15 +191,9 @@ function nextSevenDays() {
   });
 }
 
-function availableSlots(dateValue: string) {
-  const now = Date.now();
-  return timeSlots.filter((slot) => new Date(`${dateValue}T${slot}:00`).getTime() >= now);
-}
-
 function formatSelected(value: string) {
   const date = value.slice(0, 10);
-  const time = value.slice(11, 16);
-  return `${date} ${time}`;
+  return `${date} 全天`;
 }
 
 function formatDate(date: Date) {

@@ -84,7 +84,7 @@ public class ReservationService {
         reservation.setReservationType(request.reservationType());
         reservation.setCampusId(request.campusId());
         reservation.setApplyTime(now);
-        reservation.setVisitTime(request.visitTime());
+        reservation.setVisitTime(visitDate.atStartOfDay());
         reservation.setValidStartTime(visitDate.atStartOfDay());
         reservation.setValidEndTime(visitDate.atTime(LocalTime.of(23, 59, 59)));
         reservation.setOrganization(request.organization());
@@ -234,10 +234,17 @@ public class ReservationService {
         return reservations.stream()
                 .map(reservation -> toListItem(
                         reservation,
-                        campusNames.get(reservation.getCampusId()),
-                        deptNames.get(reservation.getVisitDeptId()),
+                        mapValue(campusNames, reservation.getCampusId()),
+                        mapValue(deptNames, reservation.getVisitDeptId()),
                         peopleCounts.getOrDefault(reservation.getId(), 1)))
                 .toList();
+    }
+
+    private <T> T mapValue(Map<Long, T> values, Long key) {
+        if (key == null || values == null || values.isEmpty()) {
+            return null;
+        }
+        return values.get(key);
     }
 
     public Map<Long, Integer> peopleCounts(List<Reservation> reservations) {

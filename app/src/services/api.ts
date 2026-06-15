@@ -59,6 +59,19 @@ type BackendCurrentPass = {
   passCode: BackendPassCode;
 };
 
+type BackendDepartment = {
+  id: number;
+  deptCode: string;
+  deptType: string;
+  deptName: string;
+  status: string;
+};
+
+export type DepartmentOption = {
+  label: string;
+  value: string;
+};
+
 class ApiError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -73,14 +86,12 @@ class AuthExpiredError extends ApiError {
   }
 }
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ??
-  (Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080');
+const API_BASE_URL = resolveApiBaseUrl();
 
 const campusIdByValue: Record<string, number> = {
-  main: 1,
-  east: 2,
-  south: 3,
+  zhaohui: 1,
+  pingfeng: 2,
+  moganshan: 3,
 };
 
 const reviewLabel: Record<ReviewStatus, string> = {
@@ -147,6 +158,16 @@ export async function hasCachedLogin() {
 
 export function isAuthExpiredError(error: unknown) {
   return error instanceof AuthExpiredError;
+}
+
+export async function listDepartmentOptions(): Promise<DepartmentOption[]> {
+  const result = await apiRequest<BackendDepartment[]>('/api/mobile/departments', { auth: false });
+  return result
+    .filter((item) => item.status === 'ENABLED')
+    .map((item) => ({
+      label: item.deptName,
+      value: String(item.id),
+    }));
 }
 
 export async function createReservation(input: CreateReservationInput) {
@@ -246,7 +267,7 @@ function toPassDetail(detail: BackendReservationDetail, pass: BackendPassCode): 
     idCardMasked: detail.idCard,
     campusGate: `${detail.campusName ?? '校区'} - 正门`,
     visitDate: datePart(detail.visitTime),
-    validTime: `${timePart(pass.validStartTime)} - ${timePart(pass.validEndTime)}`,
+    validTime: formatValidTime(pass.validStartTime, pass.validEndTime),
     qrBase64: pass.qrBase64 ?? undefined,
   };
 }
@@ -281,15 +302,54 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
     throw new ApiError(`无法连接后端服务：${API_BASE_URL}`, 0);
   }
 
-  const payload = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
-  if (options.auth !== false && (response.status === 401 || payload?.code === 401)) {
+  const payload = await parseApiEnvelope<T>(response);
+  if (options.auth !== false && (response.status === 401 || payload.envelope?.code === 401)) {
     await clearPersistedToken();
-    throw new AuthExpiredError(payload?.message || undefined);
+    throw new AuthExpiredError(payload.envelope?.message || undefined);
   }
-  if (!response.ok || !payload || payload.code !== 0) {
-    throw new ApiError(payload?.message || `请求失败 (${response.status})`, response.status);
+  if (!response.ok) {
+    throw new ApiError(payload.envelope?.message || `请求失败 (${response.status})`, response.status);
   }
-  return payload.data;
+  if (!payload.envelope) {
+    throw new ApiError(
+      `后端响应格式异常 (${response.status})，请检查 EXPO_PUBLIC_API_BASE_URL 是否指向后端服务：${API_BASE_URL}`,
+      response.status,
+    );
+  }
+  if (payload.envelope.code !== 0) {
+    throw new ApiError(payload.envelope.message || `请求失败 (${response.status})`, response.status);
+  }
+  return payload.envelope.data;
+}
+
+function resolveApiBaseUrl() {
+  const configuredUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
+  const fallbackUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+  return (configuredUrl || fallbackUrl).replace(/\/+$/, '');
+}
+
+async function parseApiEnvelope<T>(response: Response) {
+  const text = await response.text().catch(() => '');
+  if (!text) {
+    return { envelope: null };
+  }
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    if (isApiEnvelope<T>(parsed)) {
+      return { envelope: parsed };
+    }
+    return { envelope: null };
+  } catch {
+    return { envelope: null };
+  }
+}
+
+function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const candidate = value as Partial<ApiEnvelope<T>>;
+  return typeof candidate.code === 'number' && typeof candidate.message === 'string' && 'data' in candidate;
 }
 
 function toReservationSummary(item: BackendReservationItem): ReservationSummary {
@@ -332,11 +392,11 @@ function mapTrafficType(value: string) {
 function normalizeVisitTime(value: string) {
   const trimmed = value.trim();
   if (!trimmed) {
-    throw new Error('请填写预约进校时间。');
+    throw new Error('请选择预约进校日期。');
   }
   const normalized = trimmed.replace(/\//g, '-').replace(' ', 'T');
   if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
-    return `${normalized}T09:00:00`;
+    return `${normalized}T00:00:00`;
   }
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
     return `${normalized}:00`;
@@ -350,6 +410,15 @@ function datePart(value: string) {
 
 function timePart(value: string) {
   return value.slice(11, 16);
+}
+
+function formatValidTime(startTime: string, endTime: string) {
+  const start = timePart(startTime);
+  const end = timePart(endTime);
+  if (start === '00:00' && end === '23:59') {
+    return '全天';
+  }
+  return `${start} - ${end}`;
 }
 
 async function persistToken(token: string) {

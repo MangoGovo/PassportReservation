@@ -1,7 +1,7 @@
 INSERT IGNORE INTO campus (id, campus_code, campus_name, status, created_at, updated_at, deleted) VALUES
-  (1, 'MAIN', '主校区', 'ENABLED', NOW(), NOW(), 0),
-  (2, 'EAST', '东校区', 'ENABLED', NOW(), NOW(), 0),
-  (3, 'SOUTH', '南校区', 'ENABLED', NOW(), NOW(), 0);
+  (1, 'ZHAOHUI', '朝晖', 'ENABLED', NOW(), NOW(), 0),
+  (2, 'PINGFENG', '屏峰', 'ENABLED', NOW(), NOW(), 0),
+  (3, 'MOGANSHAN', '莫干山', 'ENABLED', NOW(), NOW(), 0)
 
 INSERT IGNORE INTO dept (id, dept_code, dept_type, dept_name, status, created_at, updated_at, deleted) VALUES
   (1, 'SECURITY', '行政部门', '保卫处', 'ENABLED', NOW(), NOW(), 0),

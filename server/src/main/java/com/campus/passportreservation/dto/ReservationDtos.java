@@ -26,7 +26,7 @@ public final class ReservationDtos {
     public record ReservationCreateRequest(
             @Schema(description = "预约类型：PUBLIC 社会公众预约，OFFICIAL 公务预约", example = "PUBLIC") @NotBlank String reservationType,
             @Schema(description = "预约校区 ID", example = "1") @NotNull Long campusId,
-            @Schema(description = "预约进校时间，限申请日起 7 个自然日内", example = "2026-06-08T09:00:00") @NotNull LocalDateTime visitTime,
+            @Schema(description = "预约进校日期，全天可预约，限申请日起 7 个自然日内", example = "2026-06-08T00:00:00") @NotNull LocalDateTime visitTime,
             @Schema(description = "所在单位", example = "某某科技有限公司") @NotBlank @Size(min = 2, max = 100) String organization,
             @Schema(description = "预约人姓名", example = "张三") @NotBlank @Size(min = 2, max = 30) String visitorName,
             @Schema(description = "身份证号", example = "110101199001011234") @NotBlank String idCard,
@@ -156,7 +156,7 @@ public final class ReservationDtos {
     @Schema(name = "ReservationStatistics", description = "预约统计结果")
     public record ReservationStatistics(
             @Schema(description = "统计维度", example = "campus") String dimension,
-            @Schema(description = "维度值", example = "主校区") String dimensionValue,
+            @Schema(description = "维度值", example = "朝晖") String dimensionValue,
             @Schema(description = "预约次数", example = "10") long reservationCount,
             @Schema(description = "预约人次", example = "15") long peopleCount
     ) {

@@ -50,8 +50,8 @@ public final class DictionaryDtos {
     @Schema(name = "CampusResponse", description = "校区响应")
     public record CampusResponse(
             @Schema(description = "校区 ID", example = "1") Long id,
-            @Schema(description = "校区编号", example = "MAIN") String campusCode,
-            @Schema(description = "校区名称", example = "主校区") String campusName,
+            @Schema(description = "校区编号", example = "ZHAOHUI") String campusCode,
+            @Schema(description = "校区名称", example = "朝晖") String campusName,
             @Schema(description = "状态", example = "ENABLED") String status
     ) {
     }

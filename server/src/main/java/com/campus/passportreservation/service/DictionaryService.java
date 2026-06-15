@@ -62,7 +62,7 @@ public class DictionaryService {
     public List<CampusResponse> campuses() {
         return campusMapper.selectList(new LambdaQueryWrapper<Campus>()
                         .eq(Campus::getStatus, "ENABLED")
-                        .orderByAsc(Campus::getCampusCode))
+                        .orderByAsc(Campus::getId))
                 .stream()
                 .map(this::toCampusResponse)
                 .toList();
